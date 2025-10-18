@@ -26,6 +26,11 @@ def product_video_path(instance, filename):
 
 class Product(TimeStampedModel):
     title = models.CharField(max_length=255)
+    avg_rating = models.DecimalField(
+        max_digits=3, 
+        decimal_places=1, 
+        default=0.0
+    )
     product_code = models.CharField(
         max_length=50,
         unique=True,
