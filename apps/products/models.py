@@ -24,7 +24,7 @@ def product_video_path(instance, filename):
     return f'product_videos/{slug}-{os.urandom(4).hex()}{ext}'
 
 
-class Product(TimeStampedModel):
+class Products(TimeStampedModel):
     title = models.CharField(max_length=255)
     avg_rating = models.DecimalField(
         max_digits=3, 

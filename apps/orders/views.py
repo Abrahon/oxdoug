@@ -15,13 +15,11 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAdminUser
 from .serializers import OrderListSerializer
 # Models
-from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from .models import Order
 from .serializers import OrderDetailSerializer
 from apps.cart.models import CartItem
 from apps.checkout.models import Shipping
-from apps.products.models import Product
+from apps.products.models import Products
 from apps.orders.models import Order, OrderItem
 
 from .enums import OrderStatus, PaymentStatus, PaymentMethod
@@ -34,7 +32,6 @@ from decimal import Decimal
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 from datetime import timedelta
 from rest_framework import generics, filters, status
 from rest_framework.response import Response
@@ -256,3 +253,46 @@ class OrderDeleteView(generics.DestroyAPIView):
             return Response({"message": f"Order #{order_id} deleted successfully."}, status=204)
         except Order.DoesNotExist:
             return Response({"error": "Order not found."}, status=404)
+
+# ------------------ User Order History & Detail Views ------------------ #
+
+# List all orders for a logged-in user
+class UserOrderHistoryView(generics.ListAPIView):
+    serializer_class = OrderListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by("-created")
+
+
+# Retrieve single order detail
+class UserOrderDetailView(generics.RetrieveAPIView):
+    serializer_class = OrderDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "id"
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+
+# Cancel an order
+class CancelOrderView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id, user=request.user)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Only allow cancel if status is PROCESSING (not shipped or completed)
+        if order.status not in ["PROCESSING"]:
+            return Response(
+                {"error": f"Order cannot be canceled. Current status: {order.status}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        order.status = "CANCELED"
+        order.save()
+        return Response({"message": f"Order {order.order_number} has been canceled successfully."})
+

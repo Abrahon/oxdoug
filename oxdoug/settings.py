@@ -71,6 +71,11 @@ INSTALLED_APPS = [
     'apps.products',
     'apps.reviews',
     'apps.wishlist',
+    'apps.settings',
+    'apps.contact',
+    'apps.coupons',
+    'apps.profiles',
+
 
 ]
 

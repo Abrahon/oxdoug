@@ -6,7 +6,7 @@ from decimal import Decimal
 from rest_framework import serializers
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from apps.products.models import Product
+from apps.products.models import Products
 from .models import Order, OrderItem
 from apps.checkout.models import Shipping
 from apps.accounts.models import User
@@ -241,7 +241,7 @@ class BuyNowSerializer(serializers.Serializer):
     zipcode = serializers.CharField(required=False)
 
     def validate_product_id(self, value):
-        if not Product.objects.filter(id=value).exists():
+        if not Products.objects.filter(id=value).exists():
             raise serializers.ValidationError("Product does not exist.")
         return value
 
@@ -251,7 +251,7 @@ class BuyNowSerializer(serializers.Serializer):
         user = request.user
 
         # Fetch product and validate stock
-        product = Product.objects.select_for_update().get(id=validated_data["product_id"])
+        product = Products.objects.select_for_update().get(id=validated_data["product_id"])
         quantity = validated_data.get("quantity", 1)
 
         if quantity > product.available_stock:

@@ -12,7 +12,7 @@ from .views import (
     CategoryProductFilterListView,
     ProductListView,
     ProductDetailView,
-    TopSellingProductsView,
+    # TopSellingProductsView,
     RecommendedProductsView,
 )
 
@@ -29,7 +29,7 @@ urlpatterns = [
     path('products/', ProductListView.as_view(), name='product-list'),
     path('products/<int:id>/', ProductDetailView.as_view(), name='product-detail'),
     path('products/recommended/<int:product_id>/', RecommendedProductsView.as_view(), name='recommended-products'),
-    path("top-products/", TopSellingProductsView.as_view(), name="top-selling-products"),
+    # path("top-products/", TopSellingProductsView.as_view(), name="top-selling-products"),
     path('products/category/', CategoryProductFilterListView.as_view(), name='single-category-products'),
 ]
 

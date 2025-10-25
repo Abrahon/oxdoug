@@ -22,7 +22,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from cloudinary.uploader import upload as cloudinary_upload
 
-from .models import Product, Category
+from .models import Products, Category
 from .serializers import ProductSerializer, CategorySerializer
 from .enums import ProductStatus
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -45,7 +45,7 @@ class AdminCategoryListCreateView(generics.ListCreateAPIView):
 
 # List and Create Products - Admin only
 class AdminProductListCreateView(generics.ListCreateAPIView):
-    queryset = Product.objects.all()
+    queryset = Products.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
@@ -57,13 +57,13 @@ class AdminCategoryProductListView(generics.ListAPIView):
 
     def get_queryset(self):
         category_id = self.kwargs.get("category_id")
-        return Product.objects.filter(category_id=category_id)
+        return Products.objects.filter(category_id=category_id)
 
 
 
 # Admin Product Retrieve, Update, Delete
 class AdminProductCreateUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
+    queryset = Products.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
@@ -150,10 +150,10 @@ class RecommendedProductsView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, product_id):
-        product = get_object_or_404(Product, id=product_id)
+        product = get_object_or_404(Products, id=product_id)
 
         # 1. Active products in same category, exclude current
-        recommended_qs = Product.objects.filter(
+        recommended_qs = Products.objects.filter(
             category=product.category,
             status=ProductStatus.ACTIVE
         ).exclude(id=product.id).distinct()
@@ -213,7 +213,7 @@ class CategoryProductFilterListView(APIView):
             top_filter = request.query_params.get("top", None)
             status_filter = request.query_params.get("status", None)
 
-            products = Product.objects.all()
+            products = Products.objects.all()
 
             # Include category from path
             if category_id:
@@ -223,13 +223,13 @@ class CategoryProductFilterListView(APIView):
             categories = [c.strip() for c in categories if c and c.strip()]
 
             if categories:
-                category_uuids = []
-                for cat in categories:
-                    try:
-                        category_uuids.append(uuid.UUID(cat))
-                    except ValueError:
-                        return Response({"error": f"Invalid category UUID: {cat}"}, status=400)
-                products = products.filter(category__id__in=category_uuids)
+                try:
+                    # Convert category IDs to integers
+                    category_ids = [int(cat) for cat in categories]
+                    products = products.filter(category__id__in=category_ids)
+                except ValueError:
+                    return Response({"error": "Invalid category ID format"}, status=400)
+
 
             # Status filter
             if status_filter:
@@ -288,11 +288,11 @@ class ProductFilter(django_filters.FilterSet):
     category = django_filters.CharFilter(field_name="category__id", lookup_expr="exact")
 
     class Meta:
-        model = Product
+        model = Products
         fields = ["category"]
 
 class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.all()
+    queryset = Products.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
@@ -300,7 +300,7 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductDetailView(generics.RetrieveAPIView):
-    queryset = Product.objects.all()
+    queryset = Products.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = "id"
@@ -308,34 +308,3 @@ class ProductDetailView(generics.RetrieveAPIView):
 
 
 # top selling products
-
-class TopSellingProductsView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
-        top_selling_products = (
-            OrderItem.objects
-            .values(
-                "product__id",
-                "product__images",  
-                "product__title",
-                "product__description",
-                "product__price"
-            )
-            .annotate(total_sales=Sum(F("quantity") * F("price_at_time")))
-            .order_by("-total_sales")[:10]
-        )
-
-        # Format the response: pick the first image if multiple
-        formatted_data = [
-            {
-                "id": p["product__id"],
-                "image": p["product__images"][0] if p["product__images"] else None,
-                "title": p["product__title"],
-                "description": p["product__description"],
-                "price": p["product__price"],
-            }
-            for p in top_selling_products
-        ]
-
-        return Response(formatted_data)

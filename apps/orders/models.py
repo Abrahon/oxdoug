@@ -2,7 +2,7 @@
 from django.db import models
 from apps.accounts.models import User
 from apps.common.models import TimeStampedModel
-from apps.products.models import Product
+from apps.products.models import Products
 
 
 from decimal import Decimal
@@ -69,7 +69,7 @@ class Order(TimeStampedModel):
 
 class OrderItem(TimeStampedModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="order_items")
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="order_items")
     quantity = models.PositiveIntegerField(default=1)
     price_at_time = models.DecimalField(max_digits=10, decimal_places=2)
 

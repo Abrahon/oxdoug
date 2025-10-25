@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.db import models
-from apps.products.models import Product
+from apps.products.models import Products
 from apps.common.models import TimeStampedModel
 
 
 class Review(TimeStampedModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, blank=True, null=True)
     rating = models.DecimalField(max_digits=2, decimal_places=1)  

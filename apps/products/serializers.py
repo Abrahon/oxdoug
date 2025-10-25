@@ -1,9 +1,8 @@
-
 import re
 import json
 from rest_framework import serializers
 from cloudinary.uploader import upload
-from .models import Product, Category
+from .models import Products, Category
 from cloudinary.uploader import destroy  
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -157,7 +156,7 @@ class ProductSerializer(serializers.ModelSerializer):
     )  # ✅ New video upload field
 
     class Meta:
-        model = Product
+        model = Products
         fields = [
             "id", "title", "product_code", "category",
             "colors", "available_stock", "price", "discount","discounted_price", "description",
@@ -198,7 +197,7 @@ class ProductSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         images = validated_data.pop("images_upload", [])
         video_file = validated_data.pop("video_upload", None)
-        product = Product.objects.create(**validated_data)
+        product = Products.objects.create(**validated_data)
 
         # Upload images
         image_urls = []

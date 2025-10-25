@@ -4,8 +4,44 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from .models import Review
 from .serializers import ReviewSerializer
-from apps.products.models import Product 
+from apps.products.models import Products 
 from django.db.models import Avg
+
+# from rest_framework import serializers
+# from rest_framework.exceptions import ValidationError
+# from django.db.models import Avg
+
+# class ReviewListCreateAPIView(generics.ListCreateAPIView):
+#     serializer_class = ReviewSerializer
+#     permission_classes = [IsAuthenticatedOrReadOnly]
+#     pagination_class = None
+
+#     def get_queryset(self):
+#         product_id = self.kwargs['product_id']
+#         return Review.objects.filter(product_id=product_id).order_by('-created_at')
+
+#     def perform_create(self, serializer):
+#         product_id = self.kwargs['product_id']
+#         product = get_object_or_404(Products, pk=product_id)
+#         user = self.request.user
+
+#         # ✅ Check if the user has a delivered order containing this product
+#         delivered_order_exists = OrderItem.objects.filter(
+#             order__user=user,
+#             order__status=OrderStatus.DELIVERED,
+#             product=product
+#         ).exists()
+
+#         if not delivered_order_exists:
+#             raise ValidationError("You can only review a product after it has been delivered.")
+
+#         # ✅ Save the review
+#         review = serializer.save(user=user, product=product)
+
+#         # ✅ Update product’s average rating
+#         avg_rating = Review.objects.filter(product=product).aggregate(avg=Avg("rating"))["avg"] or 0
+#         product.avg_rating = round(avg_rating, 1)
+#         product.save(update_fields=["avg_rating"])
 
 
 # List and Create Reviews
@@ -21,7 +57,7 @@ class ReviewListCreateAPIView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         product_id = self.kwargs['product_id']
-        product = get_object_or_404(Product, pk=product_id)
+        product = get_object_or_404(Products, pk=product_id)
 
         # ✅ Allow multiple reviews from the same user
         review = serializer.save(user=self.request.user, product=product)
