@@ -27,6 +27,7 @@ class EmailSecurityDetailUpdateView(generics.RetrieveUpdateAPIView):
 # ---------------------- Change Password ---------------------- #
 class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = ChangePasswordSerializer
+    
     permission_classes = [permissions.IsAdminUser]
 
     def get_object(self):

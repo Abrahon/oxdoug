@@ -7,7 +7,7 @@ from django.core.validators import RegexValidator
 from .models import OTP
 from .utils import generate_otp, send_otp_email
 
-User = get_user_model()  # ✅ Ensures custom user with 'role' field is used
+User = get_user_model() 
 
 
 # ---------------------------
@@ -179,3 +179,10 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'email', 'role', 'is_active', 'date_joined']

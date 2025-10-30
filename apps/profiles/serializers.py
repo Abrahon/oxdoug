@@ -60,3 +60,34 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if value not in Gender.values:
             raise serializers.ValidationError("Invalid gender.")
         return value
+
+
+
+# update password serializers
+class UpdatePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    confirm_new_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = self.context['request'].user
+
+        # Check current password
+        if not user.check_password(data['current_password']):
+            raise serializers.ValidationError({"current_password": "Current password is incorrect."})
+
+        # Match new passwords
+        if data['new_password'] != data['confirm_new_password']:
+            raise serializers.ValidationError({"confirm_new_password": "Passwords do not match."})
+
+        # Prevent reusing old password
+        if data['current_password'] == data['new_password']:
+            raise serializers.ValidationError({"new_password": "New password cannot be the same as the old one."})
+
+        return data
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user

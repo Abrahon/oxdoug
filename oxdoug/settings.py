@@ -34,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://px6r97t4-8000.inc1.devtunnels.ms').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://px6r97t4-8002.inc1.devtunnels.ms/').split(',')
 
 
 # Application definition
@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'apps.contact',
     'apps.coupons',
     'apps.profiles',
+    'apps.overview'
 
 
 ]
@@ -97,14 +98,13 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'oxdoug_db',
-        'USER': 'oxdoug',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
-# settings.py
 
  
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

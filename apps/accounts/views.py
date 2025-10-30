@@ -1,5 +1,5 @@
 from urllib.parse import urlencode, unquote
-
+from .serializers import UserSerializer
 import requests
 from django.conf import settings
 from django.shortcuts import render, redirect
@@ -45,23 +45,54 @@ class SignupView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
+# class LoginView(generics.GenericAPIView):
+#     serializer_class = LoginSerializer
+#     permission_classes = [AllowAny]
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data['user']
+#         refresh = RefreshToken.for_user(user)
+
+#         return Response({
+#             "message": "Login successful",
+#             "token": {
+#                 "refresh": str(refresh),
+#                 "access": str(refresh.access_token),
+#             },
+#             "user": {
+#                 "id": user.id,
+#                 "email": user.email,
+#                 "name": user.name,
+#                 "role": user.role,
+#             }
+#         }, status=status.HTTP_200_OK)
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    refresh['role'] = user.role
+    refresh['name'] = user.name  # optional
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token)
+    }
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
-    # parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        refresh = RefreshToken.for_user(user)
+
+        tokens = get_tokens_for_user(user)  # generate tokens with role
 
         return Response({
             "message": "Login successful",
-            "token": {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
+            "token": tokens,
             "user": {
                 "id": user.id,
                 "email": user.email,
@@ -416,3 +447,16 @@ class GoogleSignupView(APIView):
             "access": access_token_jwt,
             "message": "Signup successful"
         }, status=201)
+
+
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]  # only logged-in users can access
+    # or use [permissions.AllowAny] if you want it public
+
+    def get(self, request):
+        try:
+            users = User.objects.all()
+            serializer = UserSerializer(users, many=True)
+            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

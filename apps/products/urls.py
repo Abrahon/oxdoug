@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    # Admin Views
+
     AdminCategoryListCreateView,
     AdminProductListCreateView,
     AdminCategoryProductListView,
@@ -14,6 +14,8 @@ from .views import (
     ProductDetailView,
     # TopSellingProductsView,
     RecommendedProductsView,
+   
+
 )
 
 urlpatterns = [
@@ -23,6 +25,7 @@ urlpatterns = [
     path('admin/products/<int:id>/', AdminProductCreateUpdateDeleteView.as_view(), name='admin-product-detail'),
     path('admin/categories/<int:category_id>/products/', AdminCategoryProductListView.as_view(), name='admin-category-products'),
     path('admin/products/bulk-delete/', AdminProductBulkDelete.as_view(), name='admin-product-bulk-delete'),
+   
    
     # ----------------- User URLs -----------------
     path('categories/', CategoryListView.as_view(), name='category-list'),

@@ -7,9 +7,6 @@ from apps.products.models import Products
 from decimal import Decimal
 
 
-
-
-
 # ---------------- Admin Coupon Management ----------------
 class CouponListCreateView(generics.ListCreateAPIView):
     queryset = Coupon.objects.all()

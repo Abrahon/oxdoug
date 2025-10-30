@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/', include('apps.settings.urls')),
     path('api/', include('apps.coupons.urls')),
     path('api/', include('apps.profiles.urls')),
+    path('api/', include('apps.overview.urls')),
     
 
 

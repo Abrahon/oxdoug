@@ -7,7 +7,10 @@ from .serializers import UserProfileSerializer
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
-
+from rest_framework import permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import UpdatePasswordSerializer
 from rest_framework import generics, status, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -96,4 +99,18 @@ class AdminUserProfileListView(generics.ListAPIView):
             return UserProfile.objects.all().order_by('-updated_at')
         except Exception as e:
             return Response({"detail": f"Error fetching profiles: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-          
+
+
+# password chnage
+class UpdatePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = UpdatePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Password updated successfully."},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

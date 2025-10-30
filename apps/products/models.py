@@ -46,11 +46,11 @@ class Products(TimeStampedModel):
         default=0,
         help_text="Discount percentage (0-100)"
     )
+    main_image = models.URLField(blank=True, null=True)
     images = models.JSONField(blank=True, null=True)
-    # video = models.FileField(upload_to=product_video_path, blank=True, null=True)  # ✅ Video upload field
     video = models.URLField(blank=True, null=True)
 
-    features = models.TextField(blank=True) 
+    features = models.JSONField(default=list, blank=True)
 
     def save(self, *args, **kwargs):
         # Auto-generate product_code only once

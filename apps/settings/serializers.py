@@ -7,11 +7,21 @@ from .models import EmailSecurity
 
 
 class EmailSecuritySerializer(serializers.ModelSerializer):
-    primary_email = serializers.EmailField(source="user.email", read_only=True) 
+    primary_email = serializers.EmailField(source="user.email")  # remove read_only
+    name = serializers.CharField(source="user.name")      # or source="user.username" depending on your User model
 
     class Meta:
         model = EmailSecurity
-        fields = ["primary_email", "backup_email"]
+        fields = ["primary_email", "name"]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        if 'email' in user_data:
+            instance.user.email = user_data['email']
+        if 'name' in user_data:  # or username
+            instance.user.name = user_data['name']
+        instance.user.save()
+        return super().update(instance, validated_data)
 
 
 class ChangePasswordSerializer(serializers.Serializer):

@@ -39,7 +39,8 @@ class AdminCategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAdminUser]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]  # ✅ Add this
+    parser_classes = [JSONParser, MultiPartParser, FormParser] 
+    # pagination_class = None # ✅ Add this                      
 
 
 
@@ -54,6 +55,7 @@ class AdminProductListCreateView(generics.ListCreateAPIView):
 class AdminCategoryProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAdminUser]
+    
 
     def get_queryset(self):
         category_id = self.kwargs.get("category_id")
@@ -98,7 +100,7 @@ class AdminProductBulkDelete(APIView):
         ids = request.data.get("ids", [])
         if not ids:
             return Response({"error": "No product IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
-        deleted_count, _ = Product.objects.filter(id__in=ids).delete()
+        deleted_count, _ = Products.objects.filter(id__in=ids).delete()
         return Response({"message": f"{deleted_count} products deleted successfully"}, status=status.HTTP_200_OK)
 
 
@@ -110,6 +112,7 @@ class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
+    # pagination_class = None
 
 
 
@@ -187,6 +190,7 @@ class RecommendedProductsView(APIView):
 
         serializer = ProductSerializer(filtered, many=True, context={'request': request})
         return Response(serializer.data)
+
 
 
 
@@ -303,8 +307,8 @@ class ProductDetailView(generics.RetrieveAPIView):
     queryset = Products.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []     
     lookup_field = "id"
     lookup_url_kwarg = "id"
 
 
-# top selling products
