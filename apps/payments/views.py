@@ -59,8 +59,8 @@ class CreateCheckoutSessionView(APIView):
                     "quantity": 1,
                 }],
                 mode="payment",
-                success_url=f"http://localhost:3500/cart?order_id={order_id}&session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url=f"http://localhost:3500/cart?order_id={order_id}",
+                success_url=f"https://oxdouge.vercel.app/cart?order_id={order_id}&session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url=f"https://oxdouge.vercel.app/cart?order_id={order_id}",
             )
 
             order.stripe_checkout_session_id = session.id

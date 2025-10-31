@@ -34,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://px6r97t4-8002.inc1.devtunnels.ms/').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://oxdouge.vercel.app/, https://px6r97t4-8002.inc1.devtunnels.ms/').split(',')
 
 
 # Application definition
@@ -117,6 +117,7 @@ EMAIL_HOST_PASSWORD = 'Ayon28@gmail.com'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
  
 
+FRONTEND_REDIRECT_URL = "https://oxdouge.vercel.app/google/callback"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

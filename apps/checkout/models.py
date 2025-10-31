@@ -16,6 +16,8 @@ class Shipping(TimeStampedModel):
     floor = models.CharField(max_length=20, blank=True, null=True)
     city = models.CharField(max_length=50)
     zipcode = models.CharField(max_length=20)
+    is_default = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"{self.full_name} - {self.city}"

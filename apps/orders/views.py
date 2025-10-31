@@ -324,45 +324,58 @@ class AdminOrderListView(generics.ListAPIView):
                             .order_by("-created_at")
 
 # delete order 
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
+from django.db import transaction
+from .models import Order
+
 class OrderDeleteView(generics.DestroyAPIView):
     """
-    Delete an order by ID (Admin only).
+    Delete an order by ID (Admin only)
     """
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAdminUser]
 
-    def delete(self, request, *args, **kwargs):
-        order_id = kwargs.get('pk')
+    def get_object(self):
+        pk = self.kwargs.get("pk")
         try:
-            order = self.get_queryset().get(pk=order_id)
-            order.delete()
+            return self.queryset.get(pk=pk)
+        except Order.DoesNotExist:
+            raise NotFound({"error": f"Order with ID {pk} not found."})
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Safely delete an order and handle all possible exceptions.
+        """
+        instance = None
+        try:
+            instance = self.get_object()
+        except NotFound as e:
+            return Response(e.detail, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            order_id = instance.id
+            # Use transaction for safety
+            with transaction.atomic():
+                self.perform_destroy(instance)
+
             return Response(
                 {"message": f"Order #{order_id} deleted successfully."},
-                status=status.HTTP_204_NO_CONTENT
+                status=status.HTTP_200_OK
             )
-        except Order.DoesNotExist:
+
+        except Exception as e:
+            # Catch any DB or unexpected errors
             return Response(
-                {"error": "Order not found."},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": f"Unexpected error while deleting order: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
 
-# ------------------------------
-# Admin: Delete Order
-# ------------------------------
-class OrderDeleteView(generics.DestroyAPIView):
-    queryset = Order.objects.all()
-    permission_classes = [IsAdminUser]
-
-    def delete(self, request, *args, **kwargs):
-        order_id = kwargs.get('pk')
-        try:
-            order = self.get_queryset().get(pk=order_id)
-            order.delete()
-            return Response({"message": f"Order #{order_id} deleted successfully."}, status=204)
-        except Order.DoesNotExist:
-            return Response({"error": "Order not found."}, status=404)
 
 # ------------------ User Order History & Detail Views ------------------ #
 

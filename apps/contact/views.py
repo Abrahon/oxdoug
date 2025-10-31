@@ -18,7 +18,7 @@ from django.conf import settings
 # ---------------------------
 class ContactMessageCreateAPIView(generics.CreateAPIView):
     serializer_class = ContactMessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def perform_create(self, serializer):

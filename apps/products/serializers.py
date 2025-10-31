@@ -14,7 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
-    # category_details = CategorySerializer(source="category", read_only=True)
+    category_detail = CategorySerializer(source="category", read_only=True)
     colors = serializers.ListField(
         child=serializers.CharField(), required=True, allow_empty=True
     )
@@ -37,7 +37,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Products
         fields = [
-            "id", "title", "product_code", "category",
+            "id", "title", "product_code", "category","category_detail",
             "colors", "available_stock", "price", "discount","discounted_price", "description",
             "images", "images_upload","main_image","main_image_upload", "features", "video", "video_upload"  
         ]

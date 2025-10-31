@@ -78,6 +78,11 @@ class CartItemUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save()
 
     def destroy(self, request, *args, **kwargs):
+        
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({"detail": "Item removed from cart successfully."}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Item removed from cart successfully."},
+            status=status.HTTP_200_OK
+        )
+
