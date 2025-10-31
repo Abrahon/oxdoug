@@ -116,11 +116,53 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 
 
+# class OrderListSerializer(serializers.ModelSerializer):
+#     user_email = serializers.CharField(source="user.email", read_only=True)
+#     user_name = serializers.CharField(source="user.username", read_only=True) 
+#     shipping_address = serializers.CharField(source="shipping_address.address", read_only=True)
+#     order_items = serializers.SerializerMethodField()
+#     final_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+
+#     class Meta:
+#         model = Order
+#         fields = [
+#             "id",
+#             "order_number",
+#             "user_email",
+#             "user_name",
+#             "order_status",
+#             "total_amount",
+#             "created_at",
+#             "order_items",
+#             "final_amount",
+#             "shipping_address",
+#         ]
+
+
+
+#     def get_order_items(self, obj):
+
+#     # Fetch all items related to this order
+#         items = obj.items.all() 
+        
+#         return [
+#             {
+#                 "product_id": i.product.id,  
+#                 "product": i.product.title,
+#                 "quantity": i.quantity,
+#                 "price": float(i.price)
+#             }
+#             for i in items
+#         ]
+
+
+
 class OrderListSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source="user.email", read_only=True)
-    user_name = serializers.CharField(source="user.username", read_only=True) 
+    user_name = serializers.CharField(source="user.username", read_only=True)
     shipping_address = serializers.CharField(source="shipping_address.address", read_only=True)
     order_items = serializers.SerializerMethodField()
+    final_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = Order
@@ -133,28 +175,24 @@ class OrderListSerializer(serializers.ModelSerializer):
             "total_amount",
             "created_at",
             "order_items",
+            "final_amount",
             "shipping_address",
         ]
 
-
-
     def get_order_items(self, obj):
-
-    # Fetch all items related to this order
-        items = obj.items.all() 
-        
+        # Fetch all related items safely
+        items = obj.items.all()
         return [
             {
-                "product_id": i.product.id,  
-                "product": i.product.title,
-                "quantity": i.quantity,
-                "price": float(i.price)
+                "product_id": item.product.id if item.product else None,
+                "product": item.product.title if item.product else None,
+                "quantity": item.quantity,
+                "price": float(item.price),
             }
-            for i in items
+            for item in items
         ]
 
-
-
+         
 
 
 

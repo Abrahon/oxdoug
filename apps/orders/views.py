@@ -180,7 +180,7 @@ class PlaceOrderView(APIView):
             message=(
                 f"Hello {user.email},\n\n"
                 f"Your order {order.order_number} has been confirmed.\n"
-                f"Final Amount: {order.final_amount}\n\n"
+                f"Final Amount: ${order.final_amount}\n\n"
                 "Thank you for shopping with us!"
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,

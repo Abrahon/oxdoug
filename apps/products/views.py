@@ -9,7 +9,10 @@ from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Sum, F, Value
 from django.db.models.functions import Coalesce
-
+from rest_framework import generics, permissions, filters
+from .models import Products
+from .serializers import ProductSerializer
+import django_filters
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -44,12 +47,74 @@ class AdminCategoryListCreateView(generics.ListCreateAPIView):
 
 
 
+class AdminCategoryRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAdminUser]
+    parser_classes = (MultiPartParser, FormParser)
+
+    pagination_class = None
+    lookup_field = "id"
+    lookup_url_kwarg = "id"
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            return Response({      
+                "message": "Category updated successfully!",
+                "category": response.data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error updating category: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        category_name = instance.name
+        # if instance.products.exists():
+        #     return Response(
+        #         {"error": f"Cannot delete category '{category_name}' because it has products."},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+        self.perform_destroy(instance)
+        return Response({
+            "message": f"🗑️ Category '{category_name}' deleted successfully!"
+        }, status=status.HTTP_200_OK)
+
+
+
 # List and Create Products - Admin only
 class AdminProductListCreateView(generics.ListCreateAPIView):
-    queryset = Products.objects.all()
+    queryset = Products.objects.all().order_by("id")
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
+
+    # Enable filter and search
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ["category"]
+    search_fields = ["title", "category__name", "description"]
+
+    def get_queryset(self):
+        queryset = Products.objects.all().order_by("id")
+        search = self.request.query_params.get("search")
+        category = self.request.query_params.get("category")
+
+        # Handle search manually (optional for more control)
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search)
+                | Q(category__name__icontains=search)
+                | Q(description__icontains=search)
+            )
+
+        if category:
+            queryset = queryset.filter(category__id=category)
+
+        return queryset
+
+
+
 
 # List products by category for admin
 class AdminCategoryProductListView(generics.ListAPIView):
@@ -112,39 +177,7 @@ class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
-    # pagination_class = None
-
-
-
-# class UserCategoryProductListView(generics.ListAPIView):
-#     """
-#     ✅ List all products filtered by a single category.
-#     Example:
-#         /api/products/by-category/<uuid:category_id>/
-#     """
-#     serializer_class = ProductSerializer
-
-#     def get_queryset(self):
-#         category_id = self.kwargs.get("category_id")
-#         queryset = Product.objects.filter(status="active")
-
-#         if category_id:
-#             queryset = queryset.filter(category_id=category_id)
-
-#         # Optional search by product title
-#         search = self.request.query_params.get("search")
-#         if search:
-#             queryset = queryset.filter(title__icontains=search)
-
-#         # Optional ordering
-#         ordering = self.request.query_params.get("ordering")
-#         if ordering:
-#             queryset = queryset.order_by(ordering)
-
-#         return queryset
-
-
-
+    authentication_classes = [] 
 
 
 
@@ -190,8 +223,6 @@ class RecommendedProductsView(APIView):
 
         serializer = ProductSerializer(filtered, many=True, context={'request': request})
         return Response(serializer.data)
-
-
 
 
 
@@ -299,9 +330,10 @@ class ProductListView(generics.ListAPIView):
     queryset = Products.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = ProductFilter
-
+    authentication_classes = [] 
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]  
+    filterset_class = ProductFilter                 
+    search_fields = ["name", "description"]  
 
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Products.objects.all()

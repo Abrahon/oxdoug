@@ -14,6 +14,7 @@ from .views import (
     ProductDetailView,
     # TopSellingProductsView,
     RecommendedProductsView,
+    AdminCategoryRetrieveUpdateDeleteView
    
 
 )
@@ -21,6 +22,7 @@ from .views import (
 urlpatterns = [
     # ----------------- Admin URLs -----------------
     path('admin/categories/', AdminCategoryListCreateView.as_view(), name='admin-category-list-create'),
+    path('admin/categories/<int:id>/', AdminCategoryRetrieveUpdateDeleteView.as_view(), name='admin-category-rud'),
     path('admin/products/', AdminProductListCreateView.as_view(), name='admin-product-list-create'),
     path('admin/products/<int:id>/', AdminProductCreateUpdateDeleteView.as_view(), name='admin-product-detail'),
     path('admin/categories/<int:category_id>/products/', AdminCategoryProductListView.as_view(), name='admin-category-products'),
@@ -32,7 +34,7 @@ urlpatterns = [
     path('products/', ProductListView.as_view(), name='product-list'),
     path('products/<int:id>/', ProductDetailView.as_view(), name='product-detail'),
     path('products/recommended/<int:product_id>/', RecommendedProductsView.as_view(), name='recommended-products'),
-    # path("top-products/", TopSellingProductsView.as_view(), name="top-selling-products"),
+    path('category/products/', ProductListView.as_view(), name='product-list'),
     path('products/category/', CategoryProductFilterListView.as_view(), name='single-category-products'),
 ]
 
