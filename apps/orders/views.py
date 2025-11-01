@@ -428,7 +428,7 @@ class CancelOrderView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        order.order_status = "CANCELED"  # Use correct field
+        order.order_status = "CANCELLED"  
         order.save()
         return Response({
             "message": f"Order {order.order_number} has been canceled successfully.",
