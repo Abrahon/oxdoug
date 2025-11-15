@@ -1,6 +1,4 @@
 
-    
-
 from rest_framework import serializers
 from django.contrib.auth import authenticate, get_user_model
 from django.core.validators import RegexValidator
@@ -89,6 +87,24 @@ class LoginSerializer(serializers.Serializer):
 # ---------------------------
 # SEND OTP SERIALIZER
 # ---------------------------
+# class SendOTPSerializer(serializers.Serializer):
+#     email = serializers.EmailField()
+
+#     def validate_email(self, value):
+#         if not User.objects.filter(email=value).exists():
+#             raise serializers.ValidationError("User with this email does not exist.")
+#         return value
+
+#     def create(self, validated_data):
+#         user = User.objects.get(email=validated_data["email"])
+#         code = generate_otp()
+#         OTP.objects.create(user=user, code=code)
+
+#         # Send OTP via email with user's name
+#         send_otp_email(user.email, code, name=user.name)
+#         return {"message": "OTP sent successfully."}
+
+
 class SendOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -98,13 +114,18 @@ class SendOTPSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
+        # 1️⃣ Get the user
         user = User.objects.get(email=validated_data["email"])
+
+        # 2️⃣ Generate OTP
         code = generate_otp()
         OTP.objects.create(user=user, code=code)
 
-        # Send OTP via email with user's name
+        # 3️⃣ Send OTP via email
         send_otp_email(user.email, code, name=user.name)
-        return {"message": "OTP sent successfully."}
+
+        # 4️⃣ Return the user object (not a dict) so the view can access user.email
+        return user
 
 
 # ---------------------------

@@ -45,39 +45,19 @@ class SignupView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
-# class LoginView(generics.GenericAPIView):
-#     serializer_class = LoginSerializer
-#     permission_classes = [AllowAny]
-#     parser_classes = (MultiPartParser, FormParser)
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.validated_data['user']
-#         refresh = RefreshToken.for_user(user)
-
-#         return Response({
-#             "message": "Login successful",
-#             "token": {
-#                 "refresh": str(refresh),
-#                 "access": str(refresh.access_token),
-#             },
-#             "user": {
-#                 "id": user.id,
-#                 "email": user.email,
-#                 "name": user.name,
-#                 "role": user.role,
-#             }
-#         }, status=status.HTTP_200_OK)
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     refresh['role'] = user.role
-    refresh['name'] = user.name  # optional
+    refresh['name'] = user.name 
+    refresh['email'] = user.email 
+     # optional
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token)
     }
+
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
@@ -87,6 +67,7 @@ class LoginView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+        print("user",user)
 
         tokens = get_tokens_for_user(user)  # generate tokens with role
 
@@ -103,6 +84,21 @@ class LoginView(generics.GenericAPIView):
 
 
 
+# class SendOTPView(generics.CreateAPIView):
+#     serializer_class = SendOTPSerializer
+#     permission_classes = [AllowAny]
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.save()
+#         print("user email",user)
+#         request.session['otp_user_email'] = user.email
+#         print("email",user.email)
+
+#         return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+
 class SendOTPView(generics.CreateAPIView):
     serializer_class = SendOTPSerializer
     permission_classes = [AllowAny]
@@ -111,12 +107,20 @@ class SendOTPView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
 
-        # Store user's email in session so VerifyOTPView can identify the user without asking for email
-        request.session['otp_user_email'] = user.email
+        result = serializer.save()  # result is a dict {"message": "..."}
+        print("serializer.save() returned:", result)
 
-        return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+        # Extract email from validated_data instead of assuming .email exists
+        email = serializer.validated_data.get("email")
+        if email and hasattr(request, "session"):
+            request.session['otp_user_email'] = email
+            print("Stored in session:", email)
+
+        return Response(
+            {"message": result.get("message", "OTP sent successfully"), "email": email},
+            status=200
+        )
 
 
 class VerifyOTPView(generics.GenericAPIView):

@@ -34,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://oxdouge.vercel.app/, https://px6r97t4-8002.inc1.devtunnels.ms/').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://oxdouge.vercel.app/, https://px6r97t4-8002.inc1.devtunnels.ms/,https://hoodlike-nonsuccessful-leonor.ngrok-free.app/').split(',')
 
 
 # Application definition
@@ -144,6 +144,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'accounts.User'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'  
 
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")  
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
