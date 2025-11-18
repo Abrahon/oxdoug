@@ -25,7 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2c6bw(h)qyjc7jz-7cw@ks6^j*!cpu$rb=xq2)&_dsg3ri^q2w'
+# SECRET_KEY = 'django-insecure-2c6bw(h)qyjc7jz-7cw@ks6^j*!cpu$rb=xq2)&_dsg3ri^q2w'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -117,7 +118,8 @@ EMAIL_HOST_PASSWORD = 'Ayon28@gmail.com'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
  
 
-FRONTEND_REDIRECT_URL = "https://oxdouge.vercel.app/google/callback"
+FRONTEND_REDIRECT_URL = "https://notoverland.com/google/callback"
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

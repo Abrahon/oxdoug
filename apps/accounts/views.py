@@ -69,7 +69,8 @@ class LoginView(generics.GenericAPIView):
         user = serializer.validated_data['user']
         print("user",user)
 
-        tokens = get_tokens_for_user(user)  # generate tokens with role
+        tokens = get_tokens_for_user(user) 
+        print("tokens"),tokens 
 
         return Response({
             "message": "Login successful",
