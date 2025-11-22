@@ -14,6 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+
 from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer
 from .models import User, OTP
 
@@ -85,21 +86,6 @@ class LoginView(generics.GenericAPIView):
 
 
 
-# class SendOTPView(generics.CreateAPIView):
-#     serializer_class = SendOTPSerializer
-#     permission_classes = [AllowAny]
-#     parser_classes = (MultiPartParser, FormParser)
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save()
-#         print("user email",user)
-#         request.session['otp_user_email'] = user.email
-#         print("email",user.email)
-
-#         return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
-
 class SendOTPView(generics.CreateAPIView):
     serializer_class = SendOTPSerializer
     permission_classes = [AllowAny]
@@ -109,17 +95,24 @@ class SendOTPView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        result = serializer.save()  # result is a dict {"message": "..."}
+        result = serializer.save()  
         print("serializer.save() returned:", result)
 
-        # Extract email from validated_data instead of assuming .email exists
+        # ❌ ISSUE IS HERE:
+        # serializer.save() is returning a User object, NOT a dict.
+        # User object has NO .get() method — that's why error occurred:
+        # AttributeError: 'User' object has no attribute 'get'
+
         email = serializer.validated_data.get("email")
         if email and hasattr(request, "session"):
             request.session['otp_user_email'] = email
             print("Stored in session:", email)
 
         return Response(
-            {"message": result.get("message", "OTP sent successfully"), "email": email},
+            {"message": "OTP sent successfully", "email": email},
+
+            # ❌ ERROR HAPPENS HERE:
+            # result.get(...) fails because "result" is a User object.
             status=200
         )
 
