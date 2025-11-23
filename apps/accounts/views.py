@@ -110,9 +110,7 @@ class SendOTPView(generics.CreateAPIView):
 
         return Response(
             {"message": "OTP sent successfully", "email": email},
-
-            # ❌ ERROR HAPPENS HERE:
-            # result.get(...) fails because "result" is a User object.
+            
             status=200
         )
 
