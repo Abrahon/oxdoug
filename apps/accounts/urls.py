@@ -27,7 +27,5 @@ urlpatterns = [
     path('social/', include('allauth.socialaccount.urls')),         
     path("google/login/", GoogleLoginView.as_view(), name="google_login"),
     path("google/callback/", GoogleCallbackView.as_view(), name="google_callback"),
-    # path("callback/", GoogleCallbackView.as_view(), name="google_callback"),
-
     path("google/exchange/", GoogleExchangeView.as_view(), name="google_exchange")   
 ]

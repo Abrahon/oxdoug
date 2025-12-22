@@ -4,7 +4,6 @@ import requests
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
-
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,7 +12,6 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
 
 from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer
 from .models import User, OTP
@@ -320,70 +318,7 @@ class GoogleCallbackView(APIView):
         return redirect(f"{settings.FRONTEND_REDIRECT_URL}?token={jwt_token}")
     
 
-# google signup
-# class GoogleExchangeView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         code = request.data.get("code")
-#         if not code:
-#             return Response({"error": "Code is required"}, status=400)
-
-#         token_url = "https://oauth2.googleapis.com/token"
-#         data = {
-#             "code": unquote(code),
-#             "client_id": settings.GOOGLE_CLIENT_ID,
-#             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-#             "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-#             "grant_type": "authorization_code",
-#         }
-
-#         r = requests.post(token_url, data=data)
-#         if r.status_code != 200:
-#             return Response({"error": r.json()}, status=400)
-        
-#         token_data = r.json()
-#         access_token = token_data.get("access_token")
-#         if not access_token:
-#             return Response({"error": "Invalid access token"}, status=400)
-
-#         user_info = requests.get(
-#             "https://www.googleapis.com/oauth2/v3/userinfo",
-#             headers={"Authorization": f"Bearer {access_token}"}
-#         ).json()
-
-#         email = user_info.get("email")
-#         name = user_info.get("name", "")
-
-#         if not email:
-#             return Response({"error": "No email from Google"}, status=400)
-
-#         # Only use fields that exist in your custom User model
-#         user, _ = User.objects.get_or_create(
-#             email=email,
-#             defaults={"name": name}
-#         )
-
-#         refresh = RefreshToken.for_user(user)
-
-#         return Response({
-#             "user": {
-#                 "id": user.id,
-#                 "email": user.email,
-#                 "name": user.name,
-#                 "role": user.role,
-#             },
-#             "refresh": str(refresh),
-#             "access": str(refresh.access_token),
-#         })
-from urllib.parse import unquote
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.conf import settings
-import requests
-
+# google exchange
 class GoogleExchangeView(APIView):
     permission_classes = [AllowAny]
 
@@ -392,35 +327,24 @@ class GoogleExchangeView(APIView):
         if not code:
             return Response({"error": "Code is required"}, status=400)
 
-        # ⚠️ 1️⃣ Common cause of invalid_grant: The 'redirect_uri' here must match EXACTLY
-        #     the one used during the frontend Google OAuth authorization request.
-        #     Even a trailing slash mismatch causes 'invalid_grant'.
         token_url = "https://oauth2.googleapis.com/token"
         data = {
-            "code": unquote(code),  # ✅ Decode URL-encoded code
+            "code": unquote(code),
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,  # ⚠️ MUST match frontend redirect
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
             "grant_type": "authorization_code",
         }
 
-        # Exchange code for access token
         r = requests.post(token_url, data=data)
-
-        # ⚠️ 2️⃣ If the code is already used or expired, Google returns invalid_grant
-        #     Each code can only be used once and expires quickly (within ~60s)
         if r.status_code != 200:
-            return Response({
-                "error": r.json(),
-                "hint": "Check redirect_uri and ensure you're using a fresh code."
-            }, status=400)
+            return Response({"error": r.json()}, status=400)
         
         token_data = r.json()
         access_token = token_data.get("access_token")
         if not access_token:
             return Response({"error": "Invalid access token"}, status=400)
 
-        # ✅ Fetch user info from Google
         user_info = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             headers={"Authorization": f"Bearer {access_token}"}
@@ -432,27 +356,24 @@ class GoogleExchangeView(APIView):
         if not email:
             return Response({"error": "No email from Google"}, status=400)
 
-        # ✅ Create or get existing user
+        # Only use fields that exist in your custom User model
         user, _ = User.objects.get_or_create(
             email=email,
             defaults={"name": name}
         )
 
-        # ✅ Generate JWT
         refresh = RefreshToken.for_user(user)
-        refresh["role"] = user.role  # add role in token claims
 
         return Response({
             "user": {
                 "id": user.id,
                 "email": user.email,
                 "name": user.name,
-                "role": user.role,
             },
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         })
-
+    
 class GoogleSignupView(APIView):
     permission_classes = [AllowAny]
 
