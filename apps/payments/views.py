@@ -59,8 +59,8 @@ class CreateCheckoutSessionView(APIView):
                     "quantity": 1,
                 }],
                 mode="payment",
-                success_url=f"https://notoverland.com/cart?order_id={order_id}&session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url=f"https://notoverland.com/cart?order_id={order_id}",
+                success_url=f"https://www.notoverlandtech.com/cart?order_id={order_id}&session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url=f"https://www.notoverlandtech.com/cart?order_id={order_id}",
             )
 
             order.stripe_checkout_session_id = session.id
@@ -81,7 +81,7 @@ class CreateCheckoutSessionView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class StripeWebhookView(APIView):
-    authentication_classes = []  # Public webhook
+    authentication_classes = [] 
     permission_classes = []
 
     def post(self, request, *args, **kwargs):

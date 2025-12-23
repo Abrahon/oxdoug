@@ -129,7 +129,7 @@ EMAIL_HOST_PASSWORD = 'Ayon28@gmail.com'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
  
 
-FRONTEND_REDIRECT_URL = "https://notoverland.com/google/callback"
+FRONTEND_REDIRECT_URL = "https://www.notoverlandtech.com/google/callback"
 
 
 REST_FRAMEWORK = {
