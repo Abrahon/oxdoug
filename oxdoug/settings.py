@@ -76,7 +76,8 @@ INSTALLED_APPS = [
     'apps.contact',
     'apps.coupons',
     'apps.profiles',
-    'apps.overview'
+    'apps.overview',
+    'apps.promotion'
 
 
 ]
@@ -236,10 +237,16 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 
 # Optional: configure email verification
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
+# New allauth settings
+ACCOUNT_LOGIN_METHODS = {'email'}  # replaces ACCOUNT_AUTHENTICATION_METHOD
+
+ACCOUNT_SIGNUP_FIELDS = [
+    'email*',      # * = required
+    'username*',
+    'password1*',
+    'password2*'
+]
+
 
 
 # Static files (CSS, JavaScript, Images)
