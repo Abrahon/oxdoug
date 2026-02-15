@@ -77,7 +77,8 @@ INSTALLED_APPS = [
     'apps.coupons',
     'apps.profiles',
     'apps.overview',
-    'apps.promotion'
+    'apps.promotion',
+    'apps.content',
 
 
 ]

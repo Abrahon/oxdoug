@@ -32,5 +32,6 @@ urlpatterns = [
     path('api/', include('apps.profiles.urls')),
     path('api/', include('apps.overview.urls')),
     path('api/', include('apps.promotion.urls')),
+    # path('api/', include,('apps.content.urls'))
     
 ]
