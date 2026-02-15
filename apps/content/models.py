@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 
 class WhyChooseSection(models.Model):
@@ -24,7 +25,7 @@ class WhyChooseCard(models.Model):
     card_description = models.TextField()
 
     # Store icon name (example: FaBolt, MdBatteryChargingFull)
-    icon = models.CharField(max_length=100)
+    icon = CloudinaryField('icon')
 
     order = models.PositiveIntegerField(default=0)
 
