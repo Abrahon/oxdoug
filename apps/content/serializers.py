@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import WhyChooseSection
 from .models import DER
-from .models import Section
+from .models import Section,ContactInfo
+
 
 
 class WhyChooseSectionSerializer(serializers.ModelSerializer):
@@ -77,4 +78,13 @@ class SectionSerializer(serializers.ModelSerializer):
             'image',
             'created_at', 'updated_at'
         ]
+        read_only_fields = ['created_at', 'updated_at']
+# contact
+
+
+
+class ContactInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactInfo
+        fields = ['email', 'contact_number', 'location', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']

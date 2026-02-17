@@ -66,7 +66,7 @@ class Section(models.Model):
 
 
 # contact information
-
+class ContactInfo(models.Model):
     contact_number = models.CharField(max_length=20, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)

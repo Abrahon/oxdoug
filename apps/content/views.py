@@ -10,6 +10,8 @@ from .models import DER
 from .serializers import DERSerializer
 from .serializers import SectionSerializer
 from .models import Section
+from .models import ContactInfo
+from .serializers import ContactInfoSerializer
 
 # GET all & POST new
 class WhyChooseSectionView(generics.ListCreateAPIView):
@@ -146,3 +148,64 @@ class SectionSingletonView(generics.GenericAPIView):
             status=status.HTTP_200_OK
         )
 
+# contact info views
+
+
+class ContactInfoSingletonView(generics.GenericAPIView):
+    serializer_class = ContactInfoSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_object(self):
+        return ContactInfo.objects.first()
+
+    def get(self, request):
+        contact = self.get_object()
+        if not contact:
+            return Response({"detail": "No contact information exists."}, status=404)
+        serializer = self.get_serializer(contact)
+        return Response(serializer.data)
+
+    def post(self, request):
+        if ContactInfo.objects.exists():
+            return Response(
+                {"detail": "Contact information already exists. Use PUT/PATCH to update."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Contact information created successfully.", "data": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+
+    def put(self, request):
+        contact = self.get_object()
+        if not contact:
+            return Response({"detail": "No contact information exists to update."}, status=404)
+        serializer = self.get_serializer(contact, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Contact information updated successfully.", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+
+    def patch(self, request):
+        contact = self.get_object()
+        if not contact:
+            return Response({"detail": "No contact information exists to update."}, status=404)
+        serializer = self.get_serializer(contact, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Contact information updated successfully.", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+
+    def delete(self, request):
+        contact = self.get_object()
+        if not contact:
+            return Response({"detail": "No contact information exists to delete."}, status=404)
+        contact.delete()
+        return Response({"detail": "Contact information deleted successfully."}, status=status.HTTP_200_OK)
