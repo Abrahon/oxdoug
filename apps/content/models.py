@@ -30,8 +30,6 @@ class DER(models.Model):
 
 
 # section
-
-
 class Section(models.Model):
     # Heading 1
     heading1 = models.CharField(max_length=255)
@@ -57,6 +55,28 @@ class Section(models.Model):
     image = CloudinaryField('image', blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # track updates
 
     def __str__(self):
-        return f"Section {self.id}"
+        return "Section Content"
+
+    class Meta:
+        verbose_name = "Section"
+        verbose_name_plural = "Section"
+
+
+# contact information
+
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Contact Info ({self.email})"
+
+    class Meta:
+        verbose_name = "Contact Information"
+        verbose_name_plural = "Contact Information"

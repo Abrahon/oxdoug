@@ -82,22 +82,67 @@ class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 # section
 
 
-class SectionRetrieveUpdateView(generics.RetrieveUpdateAPIView):
-    queryset = Section.objects.all()
-    serializer_class = SectionSerializer
-    permission_classes = [permissions.IsAuthenticated]  # restrict as needed
-    parser_classes = [MultiPartParser, FormParser]  # for image uploads
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)  # PATCH vs PUT
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+from rest_framework import generics, permissions, status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from .models import Section
+from .serializers import SectionSerializer
+
+class SectionSingletonView(generics.GenericAPIView):
+    serializer_class = SectionSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [permissions.IsAdminUser]  # Only admin can create/update
+
+    def get_object(self):
+        """Return the single Section object, or None"""
+        return Section.objects.first()
+
+    def get(self, request):
+        section = self.get_object()
+        if not section:
+            return Response({"detail": "No section exists yet."}, status=404)
+        serializer = self.get_serializer(section)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Create the Section only if it does not exist yet"""
+        if Section.objects.exists():
+            return Response(
+                {"detail": "Section already exists. Use PUT/PATCH to update."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
         return Response(
-            {
-                "detail": "Section updated successfully.",
-                "data": serializer.data
-            },
+            {"detail": "Section created successfully.", "data": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+
+    def put(self, request):
+        """Full update"""
+        section = self.get_object()
+        if not section:
+            return Response({"detail": "No section exists to update."}, status=404)
+        serializer = self.get_serializer(section, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Section updated successfully.", "data": serializer.data},
             status=status.HTTP_200_OK
         )
+
+    def patch(self, request):
+        """Partial update"""
+        section = self.get_object()
+        if not section:
+            return Response({"detail": "No section exists to update."}, status=404)
+        serializer = self.get_serializer(section, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Section updated successfully.", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+

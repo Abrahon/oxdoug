@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import WhyChooseSectionView, WhyChooseSectionRetrieveUpdateView, DERListCreateView, DERRetrieveUpdateDestroyView,SectionRetrieveUpdateView
+from .views import WhyChooseSectionView, WhyChooseSectionRetrieveUpdateView, DERListCreateView, DERRetrieveUpdateDestroyView,SectionSingletonView
 
 urlpatterns = [
     path('why-choose/', WhyChooseSectionView.as_view()),
@@ -9,8 +9,8 @@ urlpatterns = [
     path('how-works/', DERListCreateView.as_view(), name='der-list-create'),
     path('how-works/<int:pk>/', DERRetrieveUpdateDestroyView.as_view(), name='der-detail'),
     # section
-     path('section/<int:pk>/', SectionRetrieveUpdateView.as_view(), name='section-detail-update'),
 
+    path('section/', SectionSingletonView.as_view(), name='section-singleton'),
 
 
 ]
