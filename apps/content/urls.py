@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import WhyChooseRetrieveUpdateView, WhyChooseCreateView
+from .views import WhyChooseSectionView, WhyChooseSectionRetrieveUpdateView
 
 urlpatterns = [
-    path('why-choose/', WhyChooseRetrieveUpdateView.as_view(), name='why-choose'),  # GET & PUT/PATCH
-    path('why-choose/create/', WhyChooseCreateView.as_view(), name='why-choose-create'),  # POST
+    path('why-choose/', WhyChooseSectionView.as_view()),
+    path('why-choose/<int:pk>/', WhyChooseSectionRetrieveUpdateView.as_view()),
 ]

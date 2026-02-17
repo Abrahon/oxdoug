@@ -1,36 +1,16 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from cloudinary.models import CloudinaryField
 
-
 class WhyChooseSection(models.Model):
-    heading1 = models.CharField(max_length=255)
-    heading2 = models.CharField(max_length=255)
+    heading1 = models.CharField(max_length=100)
+    heading2 = models.CharField(max_length=100)
     description = models.TextField()
+
+    card_heading = models.CharField(max_length=150, blank=True, null=True)
+    card_description = models.TextField(blank=True, null=True)
+    icon = CloudinaryField('icon', blank=True, null=True)  # cloudinary icon
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.heading1} {self.heading2}"
-
-
-class WhyChooseCard(models.Model):
-    section = models.ForeignKey(
-        WhyChooseSection,
-        related_name="cards",
-        on_delete=models.CASCADE
-    )
-    card_heading = models.CharField(max_length=255)
-    card_description = models.TextField()
-
-    # Store icon name (example: FaBolt, MdBatteryChargingFull)
-    icon = CloudinaryField('icon')
-
-    order = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ["order"]
-
-    def __str__(self):
-        return self.card_heading
+        return f"{self.heading1} - {self.heading2}"
