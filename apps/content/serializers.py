@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from .models import WhyChooseSection
+from .models import DER
+
+
 
 class WhyChooseSectionSerializer(serializers.ModelSerializer):
-    icon = serializers.SerializerMethodField()  # return full Cloudinary URL
+    icon = serializers.ImageField(required=False, allow_null=True) # DRF expects get_icon method
 
     class Meta:
         model = WhyChooseSection
@@ -16,8 +19,37 @@ class WhyChooseSectionSerializer(serializers.ModelSerializer):
             'icon',
             'created_at'
         ]
-    def get_icon(self, obj):
-        if obj.icon:
-            return obj.icon.url  # Full Cloudinary URL
-        return None
+        read_only_fields = ['id', 'created_at']
+
+    def to_representation(self, instance):
+        """Return full Cloudinary URL for icon."""
+        ret = super().to_representation(instance)
+        if instance.icon:
+            # instance.icon.url is the Cloudinary URL
+            ret['icon'] = instance.icon.url
+        else:
+            ret['icon'] = None
+        return ret
+
+
+# how workes
+
+
+class DERSerializer(serializers.ModelSerializer):
+    icon = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = DER
+        fields = ['id', 'icon', 'title', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def to_representation(self, instance):
+        """Return full Cloudinary URL for icon."""
+        ret = super().to_representation(instance)
+        if instance.icon:
+            # instance.icon.url is the Cloudinary URL
+            ret['icon'] = instance.icon.url
+        else:
+            ret['icon'] = None
+        return ret
 
