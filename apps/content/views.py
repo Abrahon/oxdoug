@@ -8,6 +8,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from .models import DER
 from .serializers import DERSerializer
+from .serializers import SectionSerializer
+from .models import Section
 
 # GET all & POST new
 class WhyChooseSectionView(generics.ListCreateAPIView):
@@ -77,3 +79,25 @@ class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             status=status.HTTP_200_OK
         )
 
+# section
+
+
+class SectionRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+    permission_classes = [permissions.IsAuthenticated]  # restrict as needed
+    parser_classes = [MultiPartParser, FormParser]  # for image uploads
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)  # PATCH vs PUT
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(
+            {
+                "detail": "Section updated successfully.",
+                "data": serializer.data
+            },
+            status=status.HTTP_200_OK
+        )
