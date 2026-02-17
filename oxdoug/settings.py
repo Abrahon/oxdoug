@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'apps.overview',
     'apps.promotion',
     'apps.content',
+    'apps.about',
 
 
 ]

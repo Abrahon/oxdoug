@@ -14,5 +14,4 @@ urlpatterns = [
     # contact info
     path('contact-info/', ContactInfoSingletonView.as_view(), name='contact-info-singleton'),
 
-
 ]
