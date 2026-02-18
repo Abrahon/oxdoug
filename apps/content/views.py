@@ -12,6 +12,12 @@ from .serializers import SectionSerializer
 from .models import Section
 from .models import ContactInfo
 from .serializers import ContactInfoSerializer
+from rest_framework import generics, permissions, status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from .models import Section
+from .serializers import SectionSerializer
+
 
 # GET all & POST new
 class WhyChooseSectionView(generics.ListCreateAPIView):
@@ -46,8 +52,6 @@ class DERListCreateView(generics.ListCreateAPIView):
 
 
 # Retrieve, Update, Delete
-
-
 class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DER.objects.all()
     serializer_class = DERSerializer
@@ -81,131 +85,163 @@ class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             status=status.HTTP_200_OK
         )
 
+
+
 # section
-
-
-
-from rest_framework import generics, permissions, status
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
-from .models import Section
-from .serializers import SectionSerializer
-
 class SectionSingletonView(generics.GenericAPIView):
     serializer_class = SectionSerializer
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [permissions.IsAdminUser]  # Only admin can create/update
+
+    def get_permissions(self):
+        #  Public GET
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+
+        #  Admin for POST / PUT / PATCH
+        return [permissions.IsAdminUser()]
 
     def get_object(self):
-        """Return the single Section object, or None"""
         return Section.objects.first()
 
+    #  GET (Public)
     def get(self, request):
         section = self.get_object()
         if not section:
             return Response({"detail": "No section exists yet."}, status=404)
+
         serializer = self.get_serializer(section)
         return Response(serializer.data)
 
+    #  POST (Admin only - create once)
     def post(self, request):
-        """Create the Section only if it does not exist yet"""
         if Section.objects.exists():
             return Response(
                 {"detail": "Section already exists. Use PUT/PATCH to update."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(
             {"detail": "Section created successfully.", "data": serializer.data},
             status=status.HTTP_201_CREATED
         )
 
+    #  PUT (Admin only - full update)
     def put(self, request):
-        """Full update"""
         section = self.get_object()
         if not section:
             return Response({"detail": "No section exists to update."}, status=404)
+
         serializer = self.get_serializer(section, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(
             {"detail": "Section updated successfully.", "data": serializer.data},
             status=status.HTTP_200_OK
         )
 
+    #  PATCH (Admin only - partial update)
     def patch(self, request):
-        """Partial update"""
         section = self.get_object()
         if not section:
             return Response({"detail": "No section exists to update."}, status=404)
+
         serializer = self.get_serializer(section, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(
             {"detail": "Section updated successfully.", "data": serializer.data},
             status=status.HTTP_200_OK
         )
 
-# contact info views
 
+
+# contact info views
 
 class ContactInfoSingletonView(generics.GenericAPIView):
     serializer_class = ContactInfoSerializer
-    permission_classes = [permissions.IsAdminUser]
+
+    def get_permissions(self):
+        # Public GET
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+
+        # Admin for POST / PUT / PATCH / DELETE
+        return [permissions.IsAdminUser()]
 
     def get_object(self):
         return ContactInfo.objects.first()
 
+    #  Public GET
     def get(self, request):
         contact = self.get_object()
         if not contact:
             return Response({"detail": "No contact information exists."}, status=404)
+
         serializer = self.get_serializer(contact)
         return Response(serializer.data)
 
+    #  Admin POST (Create once)
     def post(self, request):
         if ContactInfo.objects.exists():
             return Response(
                 {"detail": "Contact information already exists. Use PUT/PATCH to update."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(
             {"detail": "Contact information created successfully.", "data": serializer.data},
             status=status.HTTP_201_CREATED
         )
 
+    # Admin PUT (Full update)
     def put(self, request):
         contact = self.get_object()
         if not contact:
             return Response({"detail": "No contact information exists to update."}, status=404)
+
         serializer = self.get_serializer(contact, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(
             {"detail": "Contact information updated successfully.", "data": serializer.data},
             status=status.HTTP_200_OK
         )
 
+    #  Admin PATCH (Partial update)
     def patch(self, request):
         contact = self.get_object()
         if not contact:
             return Response({"detail": "No contact information exists to update."}, status=404)
+
         serializer = self.get_serializer(contact, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(
             {"detail": "Contact information updated successfully.", "data": serializer.data},
             status=status.HTTP_200_OK
         )
 
+    #  Admin DELETE
     def delete(self, request):
         contact = self.get_object()
         if not contact:
             return Response({"detail": "No contact information exists to delete."}, status=404)
+
         contact.delete()
-        return Response({"detail": "Contact information deleted successfully."}, status=status.HTTP_200_OK)
+
+        return Response(
+            {"detail": "Contact information deleted successfully."},
+            status=status.HTTP_200_OK
+        )
