@@ -17,31 +17,76 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from .models import Section
 from .serializers import SectionSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAdminUser
 
 
-# GET all & POST new
-class WhyChooseSectionView(generics.ListCreateAPIView):
-    queryset = WhyChooseSection.objects.all().order_by('-created_at')
-    # queryset = DER.objects.all().order_by('-created_at')
-    serializer_class = WhyChooseSectionSerializer
 
-    permission_classes = [permissions.IsAdminUser]
-    parser_classes = [MultiPartParser, FormParser]  
-
-
-# GET single & update
-class WhyChooseSectionRetrieveUpdateView(generics.RetrieveUpdateAPIView):
-    queryset = WhyChooseSection.objects.all()
-    serializer_class = WhyChooseSectionSerializer
-    parser_classes = [MultiPartParser, FormParser]
+class WhyChooseSectionDetailAPIView(APIView):
 
     def get_permissions(self):
-        if self.request.method in ['PUT', 'PATCH']:
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get_object(self, pk):
+        return get_object_or_404(WhyChooseSection, pk=pk)
+
+    def get(self, request, pk):
+        section = self.get_object(pk)
+        serializer = WhyChooseSectionSerializer(section)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        section = self.get_object(pk)
+        serializer = WhyChooseSectionSerializer(section, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        section = self.get_object(pk)
+        serializer = WhyChooseSectionSerializer(section, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# how works
+
+class WhyChooseSectionListCreateAPIView(APIView):
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get(self, request):
+        sections = WhyChooseSection.objects.all().order_by('-created_at')
+        serializer = WhyChooseSectionSerializer(sections, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        # ✅ Limit to 4 cards only
+        if WhyChooseSection.objects.count() >= 4:
+            return Response(
+                {"detail": "Maximum 4 Why Choose cards are allowed."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = WhyChooseSectionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "Card created successfully.", "data": serializer.data},
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 # List and Create
 class DERListCreateView(generics.ListCreateAPIView):

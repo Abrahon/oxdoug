@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import WhyChooseSectionView, WhyChooseSectionRetrieveUpdateView, DERListCreateView, DERRetrieveUpdateDestroyView,SectionSingletonView,ContactInfoSingletonView
+from .views import WhyChooseSectionListCreateAPIView, WhyChooseSectionDetailAPIView, DERListCreateView, DERRetrieveUpdateDestroyView,SectionSingletonView,ContactInfoSingletonView
 
 urlpatterns = [
-    path('why-choose/', WhyChooseSectionView.as_view()),
-    path('why-choose/<int:pk>/', WhyChooseSectionRetrieveUpdateView.as_view()),
+
+    path('why-choose/', WhyChooseSectionListCreateAPIView.as_view(), name='why-choose-list-create'),
+    path('why-choose/<int:pk>/', WhyChooseSectionDetailAPIView.as_view(), name='why-choose-detail'),
 
 
     path('how-works/', DERListCreateView.as_view(), name='der-list-create'),

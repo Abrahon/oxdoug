@@ -4,16 +4,12 @@ from .models import DER
 from .models import Section,ContactInfo
 
 
-
 class WhyChooseSectionSerializer(serializers.ModelSerializer):
-    icon = serializers.ImageField(required=False, allow_null=True) # DRF expects get_icon method
 
     class Meta:
         model = WhyChooseSection
         fields = [
             'id',
-            'heading1',
-            'heading2',
             'description',
             'card_heading',
             'card_description',
@@ -23,14 +19,15 @@ class WhyChooseSectionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
     def to_representation(self, instance):
-        """Return full Cloudinary URL for icon."""
-        ret = super().to_representation(instance)
+        representation = super().to_representation(instance)
+
         if instance.icon:
-            # instance.icon.url is the Cloudinary URL
-            ret['icon'] = instance.icon.url
+            representation['icon'] = instance.icon.url
         else:
-            ret['icon'] = None
-        return ret
+            representation['icon'] = None
+
+        return representation
+
 
 
 # how workes

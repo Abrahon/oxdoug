@@ -11,9 +11,20 @@ class HeroPromotion(models.Model):
         return self.title1
 
 
+
+
+
 class HeroPromotionImage(models.Model):
-    hero_promotion = models.ForeignKey(HeroPromotion, related_name='images', on_delete=models.CASCADE)
-    images = CloudinaryField('image', blank=True, null=True) 
+    hero_promotion = models.ForeignKey(
+        HeroPromotion,
+        related_name='images',
+        on_delete=models.CASCADE
+    )
+
+    image = CloudinaryField('image', blank=True, null=True)
+
+    heading = models.CharField(max_length=255, blank=True, null=True)
+    sub_heading = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"Image for {self.hero_promotion.title1}"
+        return f"{self.heading or 'Image'} - {self.hero_promotion.title1}"

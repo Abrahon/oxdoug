@@ -1,7 +1,6 @@
 from django.urls import path
-from .views import HeroPromotionListView, HeroPromotionRetrieveUpdateView
+from .views import HeroPromotionSingletonView
 
 urlpatterns = [
-    path('hero-promotions/', HeroPromotionListView.as_view(), name='hero-promotion-list'),
-    path('hero-promotion/', HeroPromotionRetrieveUpdateView.as_view(), name='hero-promotion-detail-update'),
+    path('hero-promotion/', HeroPromotionSingletonView.as_view(), name='hero-promotion'),
 ]

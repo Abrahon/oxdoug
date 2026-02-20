@@ -1,54 +1,144 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import HeroPromotion
+from rest_framework.response import Response
+from .models import HeroPromotion, HeroPromotionImage
 from .serializers import HeroPromotionSerializer
 
 
-# List all HeroPromotions (Public or Authenticated — your choice)
-class HeroPromotionListView(generics.ListAPIView):
-    queryset = HeroPromotion.objects.all().order_by('-created_at')
-    serializer_class = HeroPromotionSerializer
-    permission_classes = [permissions.AllowAny]  
-
-
-# # Retrieve & Update single HeroPromotion
-# class HeroPromotionRetrieveUpdateView(generics.RetrieveUpdateAPIView):
-#     queryset = HeroPromotion.objects.all()
-#     serializer_class = HeroPromotionSerializer
-#     parser_classes = [MultiPartParser, FormParser]
-
-#     def get_permissions(self):
-#         if self.request.method in ['PUT', 'PATCH']:
-#             return [permissions.IsAdminUser()]
-#         return [permissions.AllowAny()]
-
-
-
-from rest_framework import generics, permissions
-from rest_framework.parsers import MultiPartParser, FormParser
-from .models import HeroPromotion
-from .serializers import HeroPromotionSerializer
-
-
-class HeroPromotionRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+class HeroPromotionSingletonView(generics.GenericAPIView):
     serializer_class = HeroPromotionSerializer
     parser_classes = [MultiPartParser, FormParser]
 
     def get_permissions(self):
-        if self.request.method in ['PUT', 'PATCH']:
-            return [permissions.IsAdminUser()]  # only admin can update
-        return [permissions.AllowAny()]  # everyone can GET
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]  # Public GET
+        return [permissions.IsAdminUser()]   # Admin POST/PUT/PATCH/DELETE
 
     def get_object(self):
-        """
-        Return the latest HeroPromotion instance.
-        If none exists, create a new one.
-        """
-        instance = HeroPromotion.objects.order_by('-created_at').first()
-        if not instance:
-            instance = HeroPromotion.objects.create(
-                title1="",
-                title2="",
-                description=""
+        """Return the singleton HeroPromotion or None"""
+        return HeroPromotion.objects.first()
+
+    # Public GET
+    def get(self, request):
+        hero = self.get_object()
+        if not hero:
+            return Response({"detail": "No Hero Promotion exists yet."}, status=404)
+        serializer = self.get_serializer(hero)
+        return Response(serializer.data)
+
+    # Admin POST (create only if not exists)
+    def post(self, request):
+        if HeroPromotion.objects.exists():
+            return Response(
+                {"detail": "Hero Promotion already exists. Use PUT/PATCH to update."},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        return instance
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        hero = serializer.save()
+
+        # Handle images with headings/subheadings
+        images = request.FILES.getlist('new_images')
+        headings = request.data.getlist('new_headings', [])
+        subheadings = request.data.getlist('new_subheadings', [])
+
+        for idx, image in enumerate(images):
+            heading = headings[idx] if idx < len(headings) else ''
+            sub_heading = subheadings[idx] if idx < len(subheadings) else ''
+            HeroPromotionImage.objects.create(
+                hero_promotion=hero,
+                image=image,
+                heading=heading,
+                sub_heading=sub_heading
+            )
+
+        return Response(
+            {"detail": "Hero Promotion created successfully.", "data": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+
+    # Admin PUT (full update)
+    def put(self, request):
+        hero = self.get_object()
+        if not hero:
+            return Response({"detail": "No Hero Promotion exists to update."}, status=404)
+
+        serializer = self.get_serializer(hero, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # ✅ Add new images
+        images = request.FILES.getlist('new_images')
+        headings = request.data.getlist('new_headings', [])
+        subheadings = request.data.getlist('new_subheadings', [])
+
+        for idx, image in enumerate(images):
+            HeroPromotionImage.objects.create(
+                hero_promotion=hero,
+                image=image,
+                heading=headings[idx] if idx < len(headings) else '',
+                sub_heading=subheadings[idx] if idx < len(subheadings) else ''
+            )
+        
+        # ✅ Delete selected images
+        delete_ids = request.data.getlist('delete_images_ids')
+        if delete_ids:
+            delete_ids = [int(i) for i in delete_ids]  # convert to int
+            HeroPromotionImage.objects.filter(
+                hero_promotion=hero,
+                id__in=delete_ids
+            ).delete()
+        
+        return Response(
+        {"detail": "Hero Promotion updated successfully.", "data": serializer.data},
+        status=status.HTTP_200_OK
+    )
+
+    # Admin PATCH (partial update)
+    def patch(self, request):
+        hero = self.get_object()
+        if not hero:
+            return Response({"detail": "No Hero Promotion exists to update."}, status=404)
+
+        serializer = self.get_serializer(hero, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # ✅ Add new images (if provided)
+        images = request.FILES.getlist('new_images')
+        headings = request.data.getlist('new_headings', [])
+        subheadings = request.data.getlist('new_subheadings', [])
+
+        for idx, image in enumerate(images):
+            HeroPromotionImage.objects.create(
+                hero_promotion=hero,
+                image=image,
+                heading=headings[idx] if idx < len(headings) else '',
+                sub_heading=subheadings[idx] if idx < len(subheadings) else ''
+            )
+        
+            # ✅ Delete specific images (if provided)
+        delete_ids = request.data.getlist('delete_images_ids')
+        if delete_ids:
+            delete_ids = [int(i) for i in delete_ids]
+            HeroPromotionImage.objects.filter(
+                hero_promotion=hero,
+                id__in=delete_ids
+            ).delete()
+
+        return Response(
+            {"detail": "Hero Promotion partially updated successfully.", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+        
+    # Admin DELETE
+    def delete(self, request):
+        hero = self.get_object()
+        if not hero:
+            return Response({"detail": "No Hero Promotion exists to delete."}, status=404)
+
+        hero.delete()
+        return Response(
+            {"detail": "Hero Promotion deleted successfully."},
+            status=status.HTTP_200_OK
+        )
