@@ -20,24 +20,30 @@ from .serializers import SectionSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
+from django.shortcuts import get_object_or_404
+from .models import WhyChooseSection
+from .serializers import WhyChooseSectionSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
 
-
-
+# Detail view for admin update/delete and public get
 class WhyChooseSectionDetailAPIView(APIView):
+    parser_classes = [MultiPartParser, FormParser]  # ✅ add this
 
     def get_permissions(self):
         if self.request.method == "GET":
-            return [AllowAny()]
-        return [IsAdminUser()]
+            return [AllowAny()]  # public get
+        return [IsAdminUser()]   # admin PUT, PATCH, DELETE
 
     def get_object(self, pk):
         return get_object_or_404(WhyChooseSection, pk=pk)
 
+    # Public GET
     def get(self, request, pk):
         section = self.get_object(pk)
         serializer = WhyChooseSectionSerializer(section)
         return Response(serializer.data)
 
+    # Admin PUT (full update)
     def put(self, request, pk):
         section = self.get_object(pk)
         serializer = WhyChooseSectionSerializer(section, data=request.data)
@@ -46,6 +52,7 @@ class WhyChooseSectionDetailAPIView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Admin PATCH (partial update)
     def patch(self, request, pk):
         section = self.get_object(pk)
         serializer = WhyChooseSectionSerializer(section, data=request.data, partial=True)
@@ -54,20 +61,32 @@ class WhyChooseSectionDetailAPIView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Admin DELETE
+    def delete(self, request, pk):
+        section = self.get_object(pk)
+        section.delete()
+        return Response(
+            {"detail": "Card deleted successfully."},
+            status=status.HTTP_200_OK
+        )
 
 
+# List & Create view for admin & public get
 class WhyChooseSectionListCreateAPIView(APIView):
+    parser_classes = [MultiPartParser, FormParser]  # ✅ add this
 
     def get_permissions(self):
         if self.request.method == "GET":
-            return [AllowAny()]
-        return [IsAdminUser()]
+            return [AllowAny()]  # public get all
+        return [IsAdminUser()]   # admin post
 
+    # Public GET (all)
     def get(self, request):
         sections = WhyChooseSection.objects.all().order_by('-created_at')
         serializer = WhyChooseSectionSerializer(sections, many=True)
         return Response(serializer.data)
 
+    # Admin POST (create)
     def post(self, request):
         # ✅ Limit to 4 cards only
         if WhyChooseSection.objects.count() >= 4:
@@ -84,8 +103,6 @@ class WhyChooseSectionListCreateAPIView(APIView):
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 # List and Create
