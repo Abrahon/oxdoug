@@ -73,7 +73,7 @@ class WhyChooseSectionDetailAPIView(APIView):
 
 # List & Create view for admin & public get
 class WhyChooseSectionListCreateAPIView(APIView):
-    parser_classes = [MultiPartParser, FormParser]  # ✅ add this
+    parser_classes = [MultiPartParser, FormParser]  
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -114,14 +114,18 @@ class DERListCreateView(generics.ListCreateAPIView):
 
 
 # Retrieve, Update, Delete
+
 class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DER.objects.all()
     serializer_class = DERSerializer
-    permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]   # Public GET
+        return [permissions.IsAuthenticated()]  # Others need login
+
     def delete(self, request, *args, **kwargs):
-        # Only allow admin users to delete
         if not request.user.is_staff:
             return Response(
                 {"detail": "You do not have permission to delete this item."},
@@ -139,6 +143,7 @@ class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+
         return Response(
             {
                 "detail": "DER item updated successfully.",
@@ -146,7 +151,6 @@ class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             },
             status=status.HTTP_200_OK
         )
-
 
 
 # section
