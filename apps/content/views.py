@@ -112,7 +112,6 @@ class DERListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]  
 
-
 # Retrieve, Update, Delete
 
 class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -152,7 +151,57 @@ class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             status=status.HTTP_200_OK
         )
 
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import DER
+from .serializers import DERSerializer
 
+# ✅ Public list view
+class DERListView(generics.ListAPIView):
+    queryset = DER.objects.all()
+    serializer_class = DERSerializer
+    permission_classes = [permissions.AllowAny]  # Public
+    parser_classes = [MultiPartParser, FormParser]
+
+
+# ✅ Retrieve, Update, Delete
+class DERRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = DER.objects.all()
+    serializer_class = DERSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.IsAuthenticated()]  # Retrieve needs login
+        elif self.request.method == 'DELETE':
+            return [permissions.IsAdminUser()]      # Delete only for staff
+        return [permissions.IsAuthenticated()]      # Update requires login
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"detail": "DER item deleted successfully."},
+            status=status.HTTP_200_OK
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(
+            {
+                "detail": "DER item updated successfully.",
+                "data": serializer.data
+            },
+            status=status.HTTP_200_OK
+        )
+
+        
 # section
 class SectionSingletonView(generics.GenericAPIView):
     serializer_class = SectionSerializer

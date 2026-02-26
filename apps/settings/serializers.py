@@ -5,20 +5,35 @@ from django.contrib.auth.password_validation import validate_password
 from .models import EmailSecurity
 
 
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from .models import EmailSecurity
+
+User = get_user_model()
 
 class EmailSecuritySerializer(serializers.ModelSerializer):
-    primary_email = serializers.EmailField(source="user.email")  # remove read_only
-    name = serializers.CharField(source="user.name")      # or source="user.username" depending on your User model
+    primary_email = serializers.EmailField(source="user.email")
+    name = serializers.CharField(source="user.name")  # or "username"
 
     class Meta:
         model = EmailSecurity
         fields = ["primary_email", "name"]
 
+    def validate_primary_email(self, value):
+        """
+        Allow updating to same email for the current user.
+        Prevent updating to an email that belongs to another user.
+        """
+        user_instance = self.instance.user if self.instance else None
+        if User.objects.exclude(id=getattr(user_instance, 'id', None)).filter(email=value).exists():
+            raise serializers.ValidationError("This email is already in use.")
+        return value
+
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
         if 'email' in user_data:
             instance.user.email = user_data['email']
-        if 'name' in user_data:  # or username
+        if 'name' in user_data:
             instance.user.name = user_data['name']
         instance.user.save()
         return super().update(instance, validated_data)

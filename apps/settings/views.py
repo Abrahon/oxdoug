@@ -7,21 +7,32 @@ from .serializers import EmailSecuritySerializer, ChangePasswordSerializer
 
 
 # ---------------------- Email Security ---------------------- #
+
 class EmailSecurityDetailUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = EmailSecuritySerializer
     permission_classes = [permissions.IsAdminUser]
 
     def get_object(self):
+        """
+        Get or create the EmailSecurity object for the current admin user.
+        """
         obj, created = EmailSecurity.objects.get_or_create(user=self.request.user)
         return obj
 
     def update(self, request, *args, **kwargs):
-        try:
-            response = super().update(request, *args, **kwargs)
-            response.data = {"message": "Email security updated successfully", "data": response.data}
-            return response
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        """
+        Clean response wrapper with success message.
+        """
+        response = super().update(request, *args, **kwargs)
+        return Response(
+            {
+                "message": "Admin email updated successfully",
+                "data": response.data
+            },
+            status=status.HTTP_200_OK
+        )
+
+
 
 
 # ---------------------- Change Password ---------------------- #

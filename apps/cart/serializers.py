@@ -86,16 +86,102 @@ from apps.products.models import Products
 
 #         return cart_item
 
+# class CartItemSerializer(serializers.ModelSerializer):
+#     product_id = serializers.PrimaryKeyRelatedField(
+#         queryset=Products.objects.all(),
+#         source="product",
+#         write_only=True
+#     )
+#     product_name = serializers.SerializerMethodField(read_only=True)
+#     price = serializers.SerializerMethodField(read_only=True)
+#     total_price = serializers.SerializerMethodField(read_only=True)
+#     image = serializers.SerializerMethodField(read_only=True)  
+
+#     class Meta:
+#         model = CartItem
+#         fields = [
+#             "id",
+#             "product",
+#             "product_id",
+#             "quantity",
+#             "added_at",
+#             "product_name",
+#             "price",
+#             "total_price",
+#             "image"  # ✅ changed from main_image → image
+#         ]
+#         read_only_fields = ["id", "added_at", "product", "product_name", "price", "total_price", "image"]
+
+#     def get_product_name(self, obj):
+#         return obj.product.title if obj.product else None
+
+#     def get_price(self, obj):
+#         return float(obj.product.discounted_price) if obj.product else 0.0
+
+#     def get_total_price(self, obj):
+#         return round(self.get_price(obj) * obj.quantity, 2) 
+#      # ✅ rounded to 2 decimal places
+
+
+#     def get_image(self, obj):
+#         try:
+#             if obj.product.main_image:  # ✅ changed to return main_image of product
+#                 return obj.product.main_image
+#         except Exception:
+#             return None
+#         return None
+
+#     def validate_quantity(self, value):
+#         if value <= 0:
+#             raise serializers.ValidationError("Quantity must be greater than zero.")
+#         return value
+
+#     def validate(self, data):
+#         product = data.get("product") or getattr(self.instance, "product", None)
+#         quantity = data.get("quantity", getattr(self.instance, "quantity", None))
+
+#         if not product:
+#             raise serializers.ValidationError({"product": "Product must be specified."})
+
+#         if quantity > product.available_stock:
+#             raise serializers.ValidationError({
+#                 "quantity": f"Only {product.available_stock} items available in stock."
+#             })
+#         return data
+
+#     def create(self, validated_data):
+#         user = self.context["request"].user
+#         product = validated_data["product"]  
+#         quantity = validated_data.get("quantity", 1)
+
+#         cart_item, created = CartItem.objects.get_or_create(
+#             user=user,
+#             product=product,
+#             defaults={"quantity": quantity}
+#         )
+
+#         if not created:
+#             cart_item.quantity = min(cart_item.quantity + quantity, product.available_stock)
+#             cart_item.save()
+
+#         return cart_item
+
+from rest_framework import serializers
+from .models import CartItem
+from apps.products.models import Products
+
+
 class CartItemSerializer(serializers.ModelSerializer):
     product_id = serializers.PrimaryKeyRelatedField(
         queryset=Products.objects.all(),
         source="product",
         write_only=True
     )
-    product_name = serializers.SerializerMethodField(read_only=True)
-    price = serializers.SerializerMethodField(read_only=True)
-    total_price = serializers.SerializerMethodField(read_only=True)
-    image = serializers.SerializerMethodField(read_only=True)  
+
+    product_name = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
@@ -108,60 +194,82 @@ class CartItemSerializer(serializers.ModelSerializer):
             "product_name",
             "price",
             "total_price",
-            "image"  # ✅ changed from main_image → image
+            "image",
         ]
-        read_only_fields = ["id", "added_at", "product", "product_name", "price", "total_price", "image"]
+        read_only_fields = [
+            "id",
+            "added_at",
+            "product",
+            "product_name",
+            "price",
+            "total_price",
+            "image",
+        ]
+
+    # ---------------- DISPLAY ----------------
 
     def get_product_name(self, obj):
-        return obj.product.title if obj.product else None
+        return obj.product.title
 
     def get_price(self, obj):
-        return float(obj.product.discounted_price) if obj.product else 0.0
+        return float(obj.product.discounted_price)
 
     def get_total_price(self, obj):
-        return round(self.get_price(obj) * obj.quantity, 2) 
-     # ✅ rounded to 2 decimal places
-
+        return round(float(obj.product.discounted_price) * obj.quantity, 2)
 
     def get_image(self, obj):
-        try:
-            if obj.product.main_image:  # ✅ changed to return main_image of product
-                return obj.product.main_image
-        except Exception:
-            return None
-        return None
+        return obj.product.main_image if obj.product.main_image else None
 
-    def validate_quantity(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Quantity must be greater than zero.")
-        return value
+    # ---------------- VALIDATION ----------------
 
     def validate(self, data):
-        product = data.get("product") or getattr(self.instance, "product", None)
-        quantity = data.get("quantity", getattr(self.instance, "quantity", None))
+        product = data.get("product")
+        quantity = data.get("quantity", 1)
 
-        if not product:
-            raise serializers.ValidationError({"product": "Product must be specified."})
+        if quantity <= 0:
+            raise serializers.ValidationError(
+                {"quantity": "Quantity must be greater than zero."}
+            )
 
         if quantity > product.available_stock:
             raise serializers.ValidationError({
-                "quantity": f"Only {product.available_stock} items available in stock."
+                "quantity": f"Only {product.available_stock} items available."
             })
+
         return data
 
+    # ---------------- CREATE ----------------
+
     def create(self, validated_data):
-        user = self.context["request"].user
-        product = validated_data["product"]  
+        request = self.context["request"]
+        product = validated_data["product"]
         quantity = validated_data.get("quantity", 1)
 
-        cart_item, created = CartItem.objects.get_or_create(
-            user=user,
-            product=product,
-            defaults={"quantity": quantity}
-        )
+        # Ensure session exists
+        if not request.session.session_key:
+            request.session.create()
+
+        session_key = request.session.session_key
+
+        if request.user.is_authenticated:
+            cart_item, created = CartItem.objects.get_or_create(
+                user=request.user,
+                product=product,
+                defaults={"quantity": quantity}
+            )
+        else:
+            cart_item, created = CartItem.objects.get_or_create(
+                session_key=session_key,
+                user=None,
+                product=product,
+                defaults={"quantity": quantity}
+            )
 
         if not created:
-            cart_item.quantity = min(cart_item.quantity + quantity, product.available_stock)
+            cart_item.quantity = min(
+                cart_item.quantity + quantity,
+                product.available_stock
+            )
             cart_item.save()
 
         return cart_item
