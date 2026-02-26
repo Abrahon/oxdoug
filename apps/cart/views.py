@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 class CartItemListCreateView(generics.ListCreateAPIView):
     serializer_class = CartItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
     def get_queryset(self):
