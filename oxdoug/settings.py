@@ -30,6 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
+CORS_ALLOW_CREDENTIALS = True
 
 DEBUG = True
 
@@ -138,9 +139,11 @@ FRONTEND_REDIRECT_URL = "https://www.notoverlandtech.com/google/callback"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
@@ -183,8 +186,23 @@ TEMPLATES = [
 
 # WSGI_APPLICATION = 'oxdoug.wsgi.application'
 
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # default: store in DB
 
 
+# seasson token
+SESSION_COOKIE_SAMESITE = "None"
+
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = "None"
+
+CSRF_COOKIE_SECURE = True
+
+ 
+
+ 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),

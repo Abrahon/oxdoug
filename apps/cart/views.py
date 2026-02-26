@@ -146,3 +146,4 @@ class CartItemUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             {"message": "Item removed successfully."},
             status=status.HTTP_200_OK
         )
+

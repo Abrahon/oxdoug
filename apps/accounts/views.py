@@ -12,7 +12,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
+from apps.cart.utils import merge_cart_on_login
 from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer
 from .models import User, OTP
 
@@ -57,6 +57,31 @@ def get_tokens_for_user(user):
     }
 
 
+# class LoginView(generics.GenericAPIView):
+#     serializer_class = LoginSerializer
+#     permission_classes = [AllowAny]
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data['user']
+#         print("user",user)
+
+#         tokens = get_tokens_for_user(user) 
+#         print("tokens"),tokens 
+
+#         return Response({
+#             "message": "Login successful",
+#             "token": tokens,
+#             "user": {
+#                 "id": user.id,
+#                 "email": user.email,
+#                 "name": user.name,
+#                 "role": user.role,
+#             }
+#         }, status=status.HTTP_200_OK)
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
@@ -66,10 +91,18 @@ class LoginView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        print("user",user)
 
-        tokens = get_tokens_for_user(user) 
-        print("tokens"),tokens 
+        # --- MERGE GUEST CART INTO USER CART ---
+        session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+
+        merge_cart_on_login(user, session_key)
+        # --- MERGE COMPLETE ---
+
+        # Generate JWT tokens
+        tokens = get_tokens_for_user(user)
 
         return Response({
             "message": "Login successful",
@@ -81,8 +114,6 @@ class LoginView(generics.GenericAPIView):
                 "role": user.role,
             }
         }, status=status.HTTP_200_OK)
-
-
 
 class SendOTPView(generics.CreateAPIView):
     serializer_class = SendOTPSerializer

@@ -16,10 +16,10 @@ class ShippingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shipping
         fields = [
-            'shipping_id', 'user', 'full_name', 'phone_no', 'email', 'street_address',
+            'shipping_id', 'user', 'session_key', 'full_name', 'phone_no', 'email', 'street_address',
             'apartment', 'floor', 'city', 'zipcode', 'order_id', 'order', 'is_default','created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'user', 'order', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'session_key', 'order', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         user = self.context['request'].user
