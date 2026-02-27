@@ -87,26 +87,93 @@
 #         )
 
 
+# from rest_framework import generics, permissions, status
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError, NotFound
+# from .models import CartItem
+# from .serializers import CartItemSerializer
+
+
+# class CartItemListCreateView(generics.ListCreateAPIView):
+#     serializer_class = CartItemSerializer
+#     permission_classes = [permissions.AllowAny]
+#     pagination_class = None
+
+#     def get_session_key(self):
+#         if not self.request.session.session_key:
+#             self.request.session.create()
+#         return self.request.session.session_key
+
+#     def get_queryset(self):
+#         if self.request.user.is_authenticated:
+#             return CartItem.objects.filter(user=self.request.user)
+#         else:
+#             return CartItem.objects.filter(
+#                 session_key=self.get_session_key(),
+#                 user__isnull=True
+#             )
+
+#     def perform_create(self, serializer):
+#         serializer.save()
+
+
+# class CartItemUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+#     serializer_class = CartItemSerializer
+#     permission_classes = [permissions.AllowAny]
+#     lookup_field = "pk"
+
+#     def get_queryset(self):
+#         if self.request.user.is_authenticated:
+#             return CartItem.objects.filter(user=self.request.user)
+#         else:
+#             if not self.request.session.session_key:
+#                 self.request.session.create()
+#             return CartItem.objects.filter(
+#                 session_key=self.request.session.session_key,
+#                 user__isnull=True
+#             )
+
+#     def get_object(self):
+#         try:
+#             return super().get_object()
+#         except Exception:
+#             raise NotFound({"detail": "Cart item not found."})
+
+#     def destroy(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         self.perform_destroy(instance)
+#         return Response(
+#             {"message": "Item removed successfully."},
+#             status=status.HTTP_200_OK
+#         )
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import NotFound
 from .models import CartItem
 from .serializers import CartItemSerializer
 
 
 class CartItemListCreateView(generics.ListCreateAPIView):
+    """
+    List cart items (public or user) and allow adding to cart.
+    Anonymous users are tracked by session_key.
+    """
     serializer_class = CartItemSerializer
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
     def get_session_key(self):
+        """Ensure session exists for anonymous users."""
         if not self.request.session.session_key:
             self.request.session.create()
         return self.request.session.session_key
 
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            return CartItem.objects.filter(user=self.request.user)
+        """Return cart items for user or session."""
+        user = self.request.user
+        if user.is_authenticated:
+            return CartItem.objects.filter(user=user)
         else:
             return CartItem.objects.filter(
                 session_key=self.get_session_key(),
@@ -114,30 +181,51 @@ class CartItemListCreateView(generics.ListCreateAPIView):
             )
 
     def perform_create(self, serializer):
-        serializer.save()
+        """Save cart item for authenticated user or anonymous session."""
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save(session_key=self.get_session_key())
 
 
 class CartItemUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Update or delete a single cart item.
+    Works for both authenticated and anonymous users.
+    """
     serializer_class = CartItemSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = "pk"
 
+    def get_session_key(self):
+        if not self.request.session.session_key:
+            self.request.session.create()
+        return self.request.session.session_key
+
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            return CartItem.objects.filter(user=self.request.user)
+        """Return queryset for authenticated or anonymous session."""
+        user = self.request.user
+        if user.is_authenticated:
+            return CartItem.objects.filter(user=user)
         else:
-            if not self.request.session.session_key:
-                self.request.session.create()
             return CartItem.objects.filter(
-                session_key=self.request.session.session_key,
+                session_key=self.get_session_key(),
                 user__isnull=True
             )
 
     def get_object(self):
+        """Return cart item or 404."""
         try:
             return super().get_object()
         except Exception:
             raise NotFound({"detail": "Cart item not found."})
+
+    def perform_update(self, serializer):
+        """Set proper user/session before updating."""
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save(session_key=self.get_session_key())
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -146,4 +234,3 @@ class CartItemUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             {"message": "Item removed successfully."},
             status=status.HTTP_200_OK
         )
-

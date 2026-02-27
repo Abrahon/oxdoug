@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import FAQ
+from .models import FAQ,ShippingPolicy
 
 
 class FAQSerializer(serializers.ModelSerializer):
@@ -20,3 +20,12 @@ class FAQSerializer(serializers.ModelSerializer):
         ).exists():
             raise serializers.ValidationError("This question already exists.")
         return value
+    
+
+# shipping polecy
+
+class ShippingPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingPolicy
+        fields = ['id', 'heading', 'content', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
