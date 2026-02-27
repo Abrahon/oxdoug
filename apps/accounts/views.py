@@ -15,6 +15,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.cart.utils import merge_cart_on_login
 from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer
 from .models import User, OTP
+from apps.cart.models import CartItem
 
 
 from .serializers import (
@@ -82,6 +83,49 @@ def get_tokens_for_user(user):
 #             }
 #         }, status=status.HTTP_200_OK)
 
+# class LoginView(generics.GenericAPIView):
+#     serializer_class = LoginSerializer
+#     permission_classes = [AllowAny]
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data['user']
+
+#         # --- MERGE GUEST CART INTO USER CART ---
+
+#         session_key = request.session.session_key
+#         print("Login session key:", session_key)
+
+#         if session_key:
+#             print("Merging cart for user:", user.email)
+#             merge_cart_on_login(user, session_key)
+#             print("Cart merge completed")
+#         else:
+#             print("No session key found during login")
+
+#         # merge_cart_on_login(user, session_key)
+
+#         # --- MERGE COMPLETE ---
+
+#         # Generate JWT tokens
+#         tokens = get_tokens_for_user(user)
+
+#         return Response({
+#             "message": "Login successful",
+#             "token": tokens,
+#             "user": {
+#                 "id": user.id,
+#                 "email": user.email,
+#                 "name": user.name,
+#                 "role": user.role,
+#             }
+#         }, status=status.HTTP_200_OK)
+
+from apps.cart.serializers import CartItemSerializer
+from rest_framework.response import Response
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
@@ -94,17 +138,25 @@ class LoginView(generics.GenericAPIView):
 
         # --- MERGE GUEST CART INTO USER CART ---
         session_key = request.session.session_key
-        if not session_key:
-            request.session.create()
-            session_key = request.session.session_key
+        if session_key:
+            print("Merging cart for user:", user.email)
+            merge_cart_on_login(user, session_key)
+            print("Cart merge completed")
 
-        merge_cart_on_login(user, session_key)
-        # --- MERGE COMPLETE ---
+        # --- FLUSH OLD SESSION ---
+        request.session.flush()  # deletes old session and creates a new one
+        new_session_key = request.session.session_key
+        print("New session key after flush:", new_session_key)
 
-        # Generate JWT tokens
+        # --- GENERATE JWT TOKENS ---
         tokens = get_tokens_for_user(user)
 
-        return Response({
+        # --- SERIALIZE MERGED CART ---
+        merged_cart = CartItem.objects.filter(user=user)
+        serialized_cart = CartItemSerializer(merged_cart, many=True).data
+
+        # --- CREATE RESPONSE ---
+        response = Response({
             "message": "Login successful",
             "token": tokens,
             "user": {
@@ -112,8 +164,16 @@ class LoginView(generics.GenericAPIView):
                 "email": user.email,
                 "name": user.name,
                 "role": user.role,
-            }
-        }, status=status.HTTP_200_OK)
+            },
+            "cart": serialized_cart,
+            "clear_session": True 
+        }, status=200)
+
+        # --- OPTIONAL: delete old sessionid cookie in browser ---
+        response.delete_cookie("sessionid")
+        print("Session cookie deleted:", response)
+        return response
+
 
 class SendOTPView(generics.CreateAPIView):
     serializer_class = SendOTPSerializer

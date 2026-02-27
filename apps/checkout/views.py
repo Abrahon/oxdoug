@@ -62,52 +62,26 @@ from .models import Shipping
 from .serializers import ShippingSerializer
 
 
+
 class ShippingListCreateView(generics.ListCreateAPIView):
     serializer_class = ShippingSerializer
-    permission_classes = [permissions.AllowAny]  # allow guest
-    pagination_class = None
-
-    def get_session_key(self):
-        if not self.request.session.session_key:
-            self.request.session.create()
-        return self.request.session.session_key
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return Shipping.objects.filter(user=self.request.user).order_by('-is_default', '-id')
         else:
-            # For guest users, use session_key
-            return Shipping.objects.filter(user__isnull=True, session_key=self.get_session_key()).order_by('-is_default', '-id')
+            session_key = self.request.session.session_key
+            if not session_key:
+                self.request.session.create()
+                session_key = self.request.session.session_key
+            return Shipping.objects.filter(user__isnull=True, session_key=session_key).order_by('-is_default', '-id')
 
-    def perform_create(self, serializer):
-        is_default = serializer.validated_data.get('is_default', False)
 
-        if self.request.user.is_authenticated:
-            user = self.request.user
-            # unset others if default
-            if is_default:
-                Shipping.objects.filter(user=user, is_default=True).update(is_default=False)
-            else:
-                if not Shipping.objects.filter(user=user).exists():
-                    serializer.validated_data['is_default'] = True
-
-            serializer.save(user=user)
-
-        else:
-            # guest user
-            session_key = self.get_session_key()
-            if is_default:
-                Shipping.objects.filter(user__isnull=True, session_key=session_key, is_default=True).update(is_default=False)
-            else:
-                if not Shipping.objects.filter(user__isnull=True, session_key=session_key).exists():
-                    serializer.validated_data['is_default'] = True
-
-            serializer.save(session_key=session_key)
 
 class ShippingRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ShippingSerializer
-    permission_classes = [permissions.AllowAny]  # allow guest
-    lookup_field = 'id'
+    permission_classes = [permissions.AllowAny]  
 
     def get_session_key(self):
         if not self.request.session.session_key:
