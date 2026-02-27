@@ -30,13 +30,23 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-CORS_ALLOW_CREDENTIALS = True
+
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','notoverland.com', 'www.notoverland.com']
+ALLOWED_HOSTS = ['*', 'notoverland.com', 'www.notoverland.com']
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://oxdouge.vercel.app/, https://zznkjkkp-8001.inc1.devtunnels.ms/,https://hoodlike-nonsuccessful-leonor.ngrok-free.app/').split(',')
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    'https://www.notoverlandtech.com',
+    'https://oxdouge.vercel.app',
+    'http://localhost:3500',
+    'http://10.10.13.2:3500',
+    'https://zznkjkkp-8001.inc1.devtunnels.ms',
+]
+
+# CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3500,http://10.10.13.2:3500, https://oxdouge.vercel.app/, https://zznkjkkp-8001.inc1.devtunnels.ms/,https://hoodlike-nonsuccessful-leonor.ngrok-free.app/').split(',')
 
 
 # Application definition
