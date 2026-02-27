@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import FAQ,ShippingPolicy
+from .models import FAQ,ShippingPolicy,TermsAndConditions,ReturnPolicy,ReturnHelp
 
 
 class FAQSerializer(serializers.ModelSerializer):
@@ -29,3 +29,28 @@ class ShippingPolicySerializer(serializers.ModelSerializer):
         model = ShippingPolicy
         fields = ['id', 'heading', 'content', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+
+# return polecy
+
+
+class ReturnPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReturnPolicy
+        fields = '__all__'
+
+
+
+class TermsAndConditionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TermsAndConditions
+        fields = '__all__'
+
+
+# return policy
+
+
+class ReturnHelpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReturnHelp
+        fields = "__all__"
