@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'apps.promotion',
     'apps.content',
     'apps.about',
+    'apps.resources',
 
 
 ]
