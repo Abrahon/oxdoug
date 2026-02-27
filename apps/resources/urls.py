@@ -9,7 +9,10 @@ from .views import (
      TermsAndConditionsListCreateView,
      TermsAndConditionsRetrieveUpdateDestroyView,
      ReturnHelpListCreateView,
-     ReturnHelpRetrieveUpdateDestroyView
+     ReturnHelpRetrieveUpdateDestroyView,
+     InfoSectionListCreateView,
+     InfoSectionRetrieveUpdateDestroyView
+     
 )
 
 urlpatterns = [
@@ -23,4 +26,7 @@ urlpatterns = [
     path('terms-and-conditions/<int:pk>/', TermsAndConditionsRetrieveUpdateDestroyView.as_view(), name='terms-detail'),
     path('return-help/', ReturnHelpListCreateView.as_view(), name='return-help-list-create'),
     path('return-help/<int:pk>/', ReturnHelpRetrieveUpdateDestroyView.as_view(), name='return-help-detail'),
+    # footer 
+    path('footer-section/', InfoSectionListCreateView.as_view(), name='info-section-list-create'),
+    path('footer-section/<int:pk>/', InfoSectionRetrieveUpdateDestroyView.as_view(), name='info-section-detail'),
 ]

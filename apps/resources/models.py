@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 class FAQ(models.Model):
     question = models.CharField(max_length=255)
@@ -83,7 +84,7 @@ class ReturnHelp(models.Model):
 
 class FooterSection(models.Model):
     title = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='info_section/')
+    image = CloudinaryField('image') 
     content = models.TextField()
 
     def __str__(self):

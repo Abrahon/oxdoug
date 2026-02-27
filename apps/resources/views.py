@@ -18,6 +18,9 @@ from .serializers import TermsAndConditionsSerializer
 from rest_framework.exceptions import ValidationError
 from .models import ReturnHelp
 from .serializers import ReturnHelpSerializer
+from .models import FooterSection
+from .serializers import InfoSectionSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 
@@ -205,3 +208,47 @@ class ReturnHelpRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView)
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({"detail": "ReturnHelp instance deleted successfully."})
+
+
+
+
+
+class InfoSectionListCreateView(generics.ListCreateAPIView):
+    parser_classes = [MultiPartParser, FormParser] 
+    queryset = FooterSection.objects.all()
+    serializer_class = InfoSectionSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def perform_create(self, serializer):
+        if FooterSection.objects.exists():
+            raise ValidationError({
+                "detail": "InfoSection instance already exists. You can update or delete it."
+            })
+        serializer.save()
+
+
+class InfoSectionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    parser_classes = [MultiPartParser, FormParser] 
+    queryset = FooterSection.objects.all()
+    serializer_class = InfoSectionSerializer
+
+    lookup_field = 'pk'
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"detail": "InfoSection instance deleted successfully."})
+        from rest_framework.parsers import MultiPartParser, FormParser
+
+
+
+
