@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import FAQ,ShippingPolicy,TermsAndConditions,ReturnPolicy,ReturnHelp,FooterSection
+from rest_framework import serializers
+from .models import SocialLinks
 
 
 class FAQSerializer(serializers.ModelSerializer):
@@ -70,3 +72,10 @@ class InfoSectionSerializer(serializers.ModelSerializer):
         if obj.image:
             return obj.image.url  # CloudinaryField automatically gives full URL
         return None
+
+# from rest_framework import serializers
+
+class SocialLinksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialLinks
+        fields = '__all__'

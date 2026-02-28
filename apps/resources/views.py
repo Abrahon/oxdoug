@@ -1,5 +1,6 @@
 from django.shortcuts import render
-
+from .models import SocialLinks
+from .serializers import SocialLinksSerializer
 # Create your views here.
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -267,3 +268,33 @@ class InfoSectionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
 
 
 
+
+class SocialLinksListCreateView(generics.ListCreateAPIView):
+    queryset = SocialLinks.objects.all()
+    serializer_class = SocialLinksSerializer
+    pagination_class = None
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]  # public GET
+        return [permissions.IsAdminUser()]   # admin POST
+
+    def perform_create(self, serializer):
+        if SocialLinks.objects.exists():
+            raise ValidationError(
+                {"detail": "SocialLinks instance already exists. You can update or delete it."}
+            )
+        serializer.save()
+
+    def list(self, request, *args, **kwargs):
+        instance = SocialLinks.objects.first()
+        if not instance:
+            return Response({"detail": "SocialLinks instance not found."}, status=404)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class SocialLinksRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = SocialLinks.objects.all()
+    serializer_class = SocialLinksSerializer
+    permission_classes = [permissions.IsAdminUser]

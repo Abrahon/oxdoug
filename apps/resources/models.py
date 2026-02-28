@@ -89,3 +89,20 @@ class FooterSection(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# social accounts
+
+class SocialLinks(models.Model):
+    facebook = models.URLField(max_length=255, blank=True, null=True)
+    instagram = models.URLField(max_length=255, blank=True, null=True)
+    x = models.URLField(max_length=255, blank=True, null=True)  # X is the new Twitter
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Social Links"
+    
+    class Meta:
+        verbose_name = "Social Links"
+        verbose_name_plural = "Social Links"

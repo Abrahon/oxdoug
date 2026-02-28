@@ -11,7 +11,9 @@ from .views import (
      ReturnHelpListCreateView,
      ReturnHelpRetrieveUpdateDestroyView,
      InfoSectionListCreateView,
-     InfoSectionRetrieveUpdateDestroyView
+     InfoSectionRetrieveUpdateDestroyView,
+     SocialLinksListCreateView,
+     SocialLinksRetrieveUpdateDestroyView
      
 )
 
@@ -29,4 +31,8 @@ urlpatterns = [
     # footer 
     path('footer-section/', InfoSectionListCreateView.as_view(), name='info-section-list-create'),
     path('footer-section/<int:pk>/', InfoSectionRetrieveUpdateDestroyView.as_view(), name='info-section-detail'),
+
+    path('social-links/', SocialLinksListCreateView.as_view(), name='social-links-list-create'),
+    path('social-links/<int:pk>/', SocialLinksRetrieveUpdateDestroyView.as_view(), name='social-links-rud'),
+
 ]
