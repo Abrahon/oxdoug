@@ -140,6 +140,8 @@ class ReturnPolicyRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 class TermsAndConditionsListCreateView(generics.ListCreateAPIView):
     queryset = TermsAndConditions.objects.all()
     serializer_class = TermsAndConditionsSerializer
+    # pagination_class=None
+
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -177,14 +179,16 @@ class TermsAndConditionsRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroy
 # return views
 
 
+
 class ReturnHelpListCreateView(generics.ListCreateAPIView):
     queryset = ReturnHelp.objects.all()
     serializer_class = ReturnHelpSerializer
+    pagination_class = None
 
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]  # Public GET
-        return [permissions.IsAdminUser()]  # Admin POST
+        return [permissions.IsAdminUser()]    # Admin POST
 
     def perform_create(self, serializer):
         if ReturnHelp.objects.exists():
@@ -192,6 +196,15 @@ class ReturnHelpListCreateView(generics.ListCreateAPIView):
                 {"detail": "ReturnHelp instance already exists. You can update or delete it."}
             )
         serializer.save()
+
+    def list(self, request, *args, **kwargs):
+        """Return a single object instead of a list"""
+        instance = ReturnHelp.objects.first()
+        if not instance:
+            return Response({"detail": "ReturnHelp instance not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class ReturnHelpRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -212,11 +225,12 @@ class ReturnHelpRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView)
 
 
 
-
 class InfoSectionListCreateView(generics.ListCreateAPIView):
     parser_classes = [MultiPartParser, FormParser] 
     queryset = FooterSection.objects.all()
     serializer_class = InfoSectionSerializer
+    pagination_class=None
+
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -232,9 +246,10 @@ class InfoSectionListCreateView(generics.ListCreateAPIView):
 
 
 class InfoSectionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    parser_classes = [MultiPartParser, FormParser] 
+    
     queryset = FooterSection.objects.all()
     serializer_class = InfoSectionSerializer
+    parser_classes = [MultiPartParser, FormParser] 
 
     lookup_field = 'pk'
 
