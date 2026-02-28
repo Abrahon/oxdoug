@@ -20,9 +20,10 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-2c6bw(h)qyjc7jz-7cw@ks6^j*!cpu$rb=xq2)&_dsg3ri^q2w'
@@ -34,7 +35,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'notoverland.com', 'www.notoverland.com']
+ALLOWED_HOSTS = ['*', 'notoverlandtech.com', 'www.notoverlandtech.com']
 
 CORS_ALLOW_CREDENTIALS = True
 
