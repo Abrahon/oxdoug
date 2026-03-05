@@ -3,6 +3,8 @@ from .models import WhyChooseSection
 from .models import DER
 from .models import Section,ContactInfo
 
+from .models import HeadingSection,IconSection
+
 
 class WhyChooseSectionSerializer(serializers.ModelSerializer):
 
@@ -85,3 +87,22 @@ class ContactInfoSerializer(serializers.ModelSerializer):
         model = ContactInfo
         fields = ['email', 'contact_number', 'location', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
+
+
+# apps/common/serializers.py
+
+
+
+class HeadingSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HeadingSection
+        fields = '__all__'
+
+
+# our values
+# apps/common/serializers.py
+
+class IconSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IconSection
+        fields = '__all__'

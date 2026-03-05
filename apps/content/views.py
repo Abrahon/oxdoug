@@ -24,6 +24,11 @@ from django.shortcuts import get_object_or_404
 from .models import WhyChooseSection
 from .serializers import WhyChooseSectionSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
+from .models import HeadingSection
+from .serializers import HeadingSectionSerializer
+from .models import IconSection
+from .serializers import IconSectionSerializer
+
 
 # Detail view for admin update/delete and public get
 class WhyChooseSectionDetailAPIView(APIView):
@@ -360,3 +365,62 @@ class ContactInfoSingletonView(generics.GenericAPIView):
             {"detail": "Contact information deleted successfully."},
             status=status.HTTP_200_OK
         )
+
+# apps/common/views.py
+
+
+
+class HeadingSectionListCreateView(generics.ListCreateAPIView):
+    serializer_class = HeadingSectionSerializer
+    queryset = HeadingSection.objects.all()
+    pagination_class = None  # no pagination
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.AllowAny()]  # public GET
+        return [permissions.IsAdminUser()]    # admin POST
+
+    def perform_create(self, serializer):
+        # Only allow 1 instance, enforce singleton
+        if HeadingSection.objects.exists():
+            raise ValidationError({
+                "detail": "HeadingSection instance already exists. You can update or delete it."
+            })
+        serializer.save()
+
+
+class HeadingSectionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = HeadingSectionSerializer
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        return HeadingSection.objects.all()
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.AllowAny()]  # public GET
+        return [permissions.IsAdminUser()]    # admin PUT/PATCH/DELETE
+
+
+# our values section
+# apps/common/views.py
+
+
+class IconSectionListCreateView(generics.ListCreateAPIView):
+    queryset = IconSection.objects.all()
+    serializer_class = IconSectionSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]  # Public GET
+        return [permissions.IsAdminUser()]  # Admin POST
+
+class IconSectionRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = IconSection.objects.all()
+    serializer_class = IconSectionSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]  # Public GET
+        return [permissions.IsAdminUser()]  # Admin PUT/PATCH/DELETE

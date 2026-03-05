@@ -1,6 +1,6 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
-
+from django.utils.translation import gettext_lazy as _
 
 class WhyChooseSection(models.Model):
     description = models.TextField()
@@ -80,3 +80,54 @@ class ContactInfo(models.Model):
     class Meta:
         verbose_name = "Contact Information"
         verbose_name_plural = "Contact Information"
+
+
+# model for all title
+# apps/common/models.py
+
+
+class HeadingSection(models.Model):
+    # 5 headings and 5 corresponding subheadings
+    heading1 = models.CharField(max_length=255)
+    subheading1 = models.CharField(max_length=255)
+
+    heading2 = models.CharField(max_length=255)
+    subheading2 = models.CharField(max_length=255)
+
+    heading3 = models.CharField(max_length=255)
+    subheading3 = models.CharField(max_length=255)
+
+    heading4 = models.CharField(max_length=255)
+    subheading4 = models.CharField(max_length=255)
+
+    heading5 = models.CharField(max_length=255)
+    subheading5 = models.CharField(max_length=255)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Heading Section")
+        verbose_name_plural = _("Heading Sections")
+
+    def __str__(self):
+        return f"{self.heading1} ... {self.heading5}"
+
+
+
+# our values
+
+
+class IconSection(models.Model):
+    icon = CloudinaryField('icon')  # Upload icon to Cloudinary
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
