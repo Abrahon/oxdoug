@@ -404,8 +404,6 @@ class HeadingSectionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIV
 
 # our values section
 # apps/common/views.py
-
-
 class IconSectionListCreateView(generics.ListCreateAPIView):
     queryset = IconSection.objects.all()
     serializer_class = IconSectionSerializer
