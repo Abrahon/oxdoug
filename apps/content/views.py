@@ -419,6 +419,7 @@ class IconSectionListCreateView(generics.ListCreateAPIView):
 class IconSectionRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = IconSection.objects.all()
     serializer_class = IconSectionSerializer
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_permissions(self):
         if self.request.method == 'GET':

@@ -103,6 +103,19 @@ class HeadingSectionSerializer(serializers.ModelSerializer):
 # apps/common/serializers.py
 
 class IconSectionSerializer(serializers.ModelSerializer):
+    icon = serializers.ImageField(required=False, allow_null=True)
     class Meta:
         model = IconSection
         fields = '__all__'
+
+    def to_representation(self, instance):
+        """Return full Cloudinary URL for icon."""
+        ret = super().to_representation(instance)
+        if instance.icon:
+            # instance.icon.url is the Cloudinary URL
+            ret['icon'] = instance.icon.url
+        else:
+            ret['icon'] = None
+        return ret
+
+
